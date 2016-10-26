@@ -5,7 +5,7 @@ import unittest
 
 
 # testing the TimeSeries class
-class TimeSeriesTest(unittest.TestCase):
+class TestTimeSeries(unittest.TestCase):
 
 	# __init__
 	
@@ -73,6 +73,8 @@ class TimeSeriesTest(unittest.TestCase):
 		x = TimeSeries([2,4,6,8,10,12])
 		x[2] = 7
 		self.assertEqual(x.value, [2,4,7,8,10,12])
+
+	#### __repr__ and __str__ ?
 
 
 
