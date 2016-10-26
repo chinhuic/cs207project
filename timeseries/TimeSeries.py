@@ -2,13 +2,21 @@
 #import itertools
 #% timeseries.py
 
-""" TimeSeries class 
+class TimeSeries:
+
+    """
+    TimeSeries class 
     Represents a series of ordered numerical values, possibly empty
     Construction:  ts = TimeSeries(<any sequence of numerical values>)
     PRE: timeseries data MUST  be in order
+
+    >>> TimeSeries([1,2,3]).value
+    [1, 2, 3]
     
-"""
-class TimeSeries:
+    >>> TimeSeries(range(0,10,2)).value
+    [0, 2, 4, 6, 8]
+
+    """
     
     #constructor for TimeSeries
     #attributes are 
