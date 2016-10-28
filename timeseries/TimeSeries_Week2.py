@@ -1,6 +1,6 @@
+import numpy as np
 
 class TimeSeries:
-
     """
     TimeSeries class 
     Represents a series of ordered numerical values, possibly empty
@@ -53,7 +53,9 @@ class TimeSeries:
         return s
     
     def __str__(self):
-        s = 'The timeseries of length ' + str(len(self.value)) + ' is ['
+        # Reimplemented a more general form
+        class_name = type(self).__name__
+        s = 'The ' + class_name + ' of length ' + str(len(self.value)) + ' is ['
         
         for i in range(len(self)):
             if (i >2):
@@ -81,3 +83,9 @@ class TimeSeries:
     def iteritems(self):
         for item in enumerate(self):
             yield item
+            
+            
+
+class ArrayTimeSeries(TimeSeries):
+    def __init__(self, data):
+        self.value = np.array(data)
