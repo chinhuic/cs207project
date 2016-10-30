@@ -53,7 +53,6 @@ class TimeSeries:
         return s
     
     def __str__(self):
-        # Reimplemented a more general form
         class_name = type(self).__name__
         s = 'The ' + class_name + ' of length ' + str(len(self.value)) + ' is ['
         
@@ -71,11 +70,10 @@ class TimeSeries:
         s = s + ']'
         return s
     
-    # Week 2
     def __iter__(self):
         for val in self.value:
             yield val
-            
+    
     def itertimes(self):
         for time in range(len(self)):
             yield time
@@ -83,9 +81,3 @@ class TimeSeries:
     def iteritems(self):
         for item in enumerate(self):
             yield item
-            
-            
-
-class ArrayTimeSeries(TimeSeries):
-    def __init__(self, data):
-        self.value = np.array(data)
