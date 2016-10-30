@@ -1,3 +1,8 @@
+<<<<<<< HEAD:timeseries/TimeSeries_Week2.py
+import numpy as np
+
+=======
+>>>>>>> master:timeseries/TimeSeries_Class.py
 class TimeSeries:
     """
     TimeSeries class
@@ -55,7 +60,10 @@ class TimeSeries:
         return s
     
     def __str__(self):
+<<<<<<< HEAD:timeseries/TimeSeries_Week2.py
+=======
         # Ernest: Reimplemented a more general form to work with class inheritance        
+>>>>>>> master:timeseries/TimeSeries_Class.py
         class_name = type(self).__name__
         s = 'The ' + class_name + ' of length ' + str(len(self.value)) + ' is ['
         
@@ -76,7 +84,7 @@ class TimeSeries:
     def __iter__(self):
         for val in self.value:
             yield val
-            
+    
     def itertimes(self):
         for time in self.time:
             yield time
