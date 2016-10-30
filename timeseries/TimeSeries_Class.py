@@ -1,20 +1,38 @@
-<<<<<<< HEAD:timeseries/TimeSeries_Week2.py
 import numpy as np
 
-=======
->>>>>>> master:timeseries/TimeSeries_Class.py
 class TimeSeries:
     """
     TimeSeries class
+    
     Represents a series of ordered numerical tuples, representing (time, value), possibly empty
     Construction:  ts = TimeSeries(<a sequence of times>, <a sequence of values>)
-    PRE: timeseries data MUST be in sorted time order
-    PRE: both sequences of times and values must be of the same length
-    >>> TimeSeries([1,2,3], [5, 10, 6]).value
-    [(1, 5), (2, 10), (3, 6)]
     
-    >>> TimeSeries(range(0,10,2), [4, 1, 10, 2, 100]).value
-    [(0, 4), (2, 1), (4, 10), (6, 2), (8, 100)]
+    Parameters
+    ----------
+    times : sequence
+        A sequence containing the ordered time points
+    values : sequence
+        A sequence containing the values corresponding to the time data. 
+        
+    Notes
+    -----
+    PRE: 
+      - timeseries data MUST be in sorted time order
+      - both sequences of times and values must be of the same length
+      
+    Examples
+    --------
+    >>> t1 = TimeSeries([1, 2, 3], [5, 10, 6])
+    >>> t1.value
+    [5, 10, 6]
+    >>> t1.time
+    [1, 2, 3]
+    
+    >>> t2 = TimeSeries((0, 2, 4, 7, 10), [4, 1, 10, 2, 100])
+    >>> t2.value
+    [4, 1, 10, 2, 100]
+    >>> t2.time
+    [0, 2, 4, 7, 10]
     """
 
     # ASSUMING THAT TIMES IS NOW REQUIRED
@@ -60,10 +78,7 @@ class TimeSeries:
         return s
     
     def __str__(self):
-<<<<<<< HEAD:timeseries/TimeSeries_Week2.py
-=======
         # Ernest: Reimplemented a more general form to work with class inheritance        
->>>>>>> master:timeseries/TimeSeries_Class.py
         class_name = type(self).__name__
         s = 'The ' + class_name + ' of length ' + str(len(self.value)) + ' is ['
         
@@ -92,3 +107,7 @@ class TimeSeries:
     def iteritems(self):
         for item in zip(self.time, self.value):
             yield item
+            
+if __name__ == "__main__":
+    import doctest
+    doctest.testmod()
