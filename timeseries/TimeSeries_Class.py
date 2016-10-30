@@ -1,25 +1,32 @@
+<<<<<<< HEAD:timeseries/TimeSeries_Week2.py
 import numpy as np
 
+=======
+>>>>>>> master:timeseries/TimeSeries_Class.py
 class TimeSeries:
     """
-    TimeSeries class 
-    Represents a series of ordered numerical values, possibly empty
-    Construction:  ts = TimeSeries(<any sequence of numerical values>)
-    PRE: timeseries data MUST  be in order
-    >>> TimeSeries([1,2,3]).value
-    [1, 2, 3]
+    TimeSeries class
+    Represents a series of ordered numerical tuples, representing (time, value), possibly empty
+    Construction:  ts = TimeSeries(<a sequence of times>, <a sequence of values>)
+    PRE: timeseries data MUST be in sorted time order
+    PRE: both sequences of times and values must be of the same length
+    >>> TimeSeries([1,2,3], [5, 10, 6]).value
+    [(1, 5), (2, 10), (3, 6)]
     
-    >>> TimeSeries(range(0,10,2)).value
-    [0, 2, 4, 6, 8]
+    >>> TimeSeries(range(0,10,2), [4, 1, 10, 2, 100]).value
+    [(0, 4), (2, 1), (4, 10), (6, 2), (8, 100)]
     """
-    
+
+    # ASSUMING THAT TIMES IS NOW REQUIRED
     #constructor for TimeSeries
     #attributes are 
+    #  times: contains the ordered time points of the time series
     #  value: contains the time series ordered data
-    def __init__(self, data):
-        self.value = [x for x in data]
-    
-    #Method len(ts), returns length of timeseries
+    def __init__(self, times, values):
+        self.time = [t for t in times]
+        self.value = [x for x in values]
+        
+    # Method len(ts), returns length of timeseries
     def __len__(self):
         return len(self.value)
     
@@ -53,6 +60,10 @@ class TimeSeries:
         return s
     
     def __str__(self):
+<<<<<<< HEAD:timeseries/TimeSeries_Week2.py
+=======
+        # Ernest: Reimplemented a more general form to work with class inheritance        
+>>>>>>> master:timeseries/TimeSeries_Class.py
         class_name = type(self).__name__
         s = 'The ' + class_name + ' of length ' + str(len(self.value)) + ' is ['
         
@@ -75,9 +86,9 @@ class TimeSeries:
             yield val
     
     def itertimes(self):
-        for time in range(len(self)):
+        for time in self.time:
             yield time
             
     def iteritems(self):
-        for item in enumerate(self):
+        for item in zip(self.time, self.value):
             yield item
