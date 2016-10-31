@@ -3,6 +3,7 @@ from pytest import raises
 import numpy as np
 import unittest
 from TimeSeries_Class import TimeSeries
+from lazy import LazyOperation, lazy_add, lazy_mul, lazy
 
 class TestTimeSeries_Week3(unittest.TestCase):
     

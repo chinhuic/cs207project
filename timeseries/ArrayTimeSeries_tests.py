@@ -2,6 +2,7 @@ from pytest import raises
 import numpy as np
 import unittest
 from ArrayTimeSeries import ArrayTimeSeries
+from lazy import LazyOperation, lazy_add, lazy_mul, lazy
 
 class TestArrayTimeSeries(unittest.TestCase):
     
@@ -284,6 +285,25 @@ class TestArrayTimeSeries(unittest.TestCase):
         self.assertTrue(np.array_equal(b.value, np.array([0, 0, 3.5, 5, -3, -3])))
         self.assertTrue(np.array_equal(b.time, np.array([0, 1, 6.5, 10, 22, 500])))
         self.assertTrue(isinstance(b, ArrayTimeSeries))
+        
+    @lazy
+    def check_length(self, a,b):
+        return len(a)==len(b)
+    
+    def test_lazy_length_check_with_normal_construction(self):
+        thunk = self.check_length(ArrayTimeSeries(range(0,4),range(1,5)), 
+                                  ArrayTimeSeries(range(1,5),range(2,6)))
+        self.assertTrue(thunk.eval() == True)
+
+    def test_lazy_length_check_with_lazy_construction(self):
+        thunk = self.check_length(ArrayTimeSeries(range(0,4),range(1,5)).lazy, 
+                                  ArrayTimeSeries(range(1,5),range(2,6)).lazy)
+        self.assertTrue(thunk.eval() == True)
+    
+    def test_same_output_normal_v_lazy(self):
+        x = ArrayTimeSeries([1,2,3,4],[1, 9, 4, 16])
+        self.assertEqual(x, x.lazy.eval())
+   
         
 if __name__ == '__main__':
     unittest.main()
