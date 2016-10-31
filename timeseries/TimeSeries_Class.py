@@ -1,4 +1,4 @@
-import numpy as np
+from lazy import LazyOperation, lazy_add, lazy_mul, lazy
 
 class TimeSeries:
     """
@@ -107,6 +107,12 @@ class TimeSeries:
     def iteritems(self):
         for item in zip(self.time, self.value):
             yield item
+            
+    @property
+    def lazy(self):
+        def identfn(x):
+            return x
+        return LazyOperation(identfn, self)
             
     @staticmethod
     def binsearch_helper(seq, val):
