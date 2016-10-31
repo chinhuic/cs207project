@@ -489,7 +489,117 @@ class TestTimeSeries_Week3(unittest.TestCase):
     def test_same_output_normal_v_lazy(self):
         x = TimeSeries([1,2,3,4],[1, 9, 4, 16])
         self.assertEqual(x, x.lazy.eval())
-    
-    
+
+
+    # __add__
+    # test infix addition
+    def test_add_valid_int(self):
+        ts = TimeSeries(range(5),[1,2,3,4,5])
+        ts2 = TimeSeries(range(5),[1,1,1,1,1])
+        
+        ans = ts+ts2
+        real_ans = TimeSeries(range(5),[2,3,4,5,6])
+
+        self.assertEqual(ans.time,real_ans.time)
+        self.assertEqual(ans.value,real_ans.value)
+
+    def test_add_valid_string(self):
+        ts = TimeSeries(range(5),'abcde')
+        ts2 = TimeSeries(range(5),'qqqqq')
+
+        ans = ts+ts2
+        real_ans = TimeSeries(range(5),['aq','bq','cq','dq','eq'])
+
+        self.assertEqual(ans.time,real_ans.time)
+        self.assertEqual(ans.value,real_ans.value)
+
+    def test_add_unequal_times(self):
+        ts = TimeSeries(range(5),[1,2,3,4,5])
+        ts2 = TimeSeries(range(0,6),[1,1,1,1,1])
+        with self.assertRaises(ValueError):
+            result = ts+ts2
+
+    def test_add_unequal_lengths(self):
+        ts = TimeSeries(range(5),[1,2,3,4,5])
+        ts2 = TimeSeries(range(5),[1,1,1,1,1,2,3,4])
+        with self.assertRaises(ValueError):
+            result = ts+ts2
+
+    # __sub__
+    def test_sub_valid_int(self):
+        ts = TimeSeries(range(3),[10,10,10])
+        ts2 = TimeSeries(range(3),[1,2,3])
+
+        ans = ts-ts2
+        real_ans = TimeSeries(range(3),[9,8,7])
+
+        self.assertEqual(ans.time,real_ans.time)
+        self.assertEqual(ans.value,real_ans.value)
+
+    def test_sub_str(self):
+        ts = TimeSeries(range(3),'abc')
+        ts2 = TimeSeries(range(3),'def')
+        with self.assertRaises(TypeError):
+            result = ts-ts2
+
+    def test_sub_unequal_times(self):
+        ts = TimeSeries(range(5),[1,2,3,4,5])
+        ts2 = TimeSeries(range(0,6),[1,1,1,1,1])
+        with self.assertRaises(ValueError):
+            result = ts-ts2
+
+    def test_sub_unequal_lengths(self):
+        ts = TimeSeries(range(5),[1,2,3,4,5])
+        ts2 = TimeSeries(range(5),[1,1,1,1,1,2,3,4])
+        with self.assertRaises(ValueError):
+            result = ts-ts2
+
+    # __eq__
+    def test_eq_equal_timeseries(self):
+        ts = TimeSeries(range(3),[1,2,3])
+        ts2 = TimeSeries(range(3),[1,2,3])
+        self.assertTrue(ts==ts2)
+
+    def test_eq_unequal_timeseries(self):
+        ts = TimeSeries(range(3),[1,2,3])
+        ts2 = TimeSeries(range(3),[4,5,6])
+        self.assertFalse(ts==ts2)
+
+    def test_eq_unequal_times(self):
+        ts = TimeSeries(range(5),[1,2,3,4,5])
+        ts2 = TimeSeries(range(0,6),[1,1,1,1,1])
+        with self.assertRaises(ValueError):
+            ts == ts2
+
+    def test_eq_unequal_lengths(self):
+        ts = TimeSeries(range(5),[1,2,3,4,5])
+        ts2 = TimeSeries(range(5),[1,1,1,1,1,2,3,4])
+        with self.assertRaises(ValueError):
+            ts == ts2
+
+    # __mul__
+    def test_mul_ints(self):
+        ts = TimeSeries(range(3),[10,10,10])
+        ts2 = TimeSeries(range(3),[1,2,3])
+        ans = ts*ts2
+
+        real_ans = TimeSeries(range(3),[10,20,30])
+
+        self.assertEqual(ans.time,real_ans.time)
+        self.assertEqual(ans.value,real_ans.value)
+
+    def test_eq_unequal_times(self):
+        ts = TimeSeries(range(5),[1,2,3,4,5])
+        ts2 = TimeSeries(range(0,6),[1,1,1,1,1])
+        with self.assertRaises(ValueError):
+            ts * ts2
+
+    def test_eq_unequal_lengths(self):
+        ts = TimeSeries(range(5),[1,2,3,4,5])
+        ts2 = TimeSeries(range(5),[1,1,1,1,1,2,3,4])
+        with self.assertRaises(ValueError):
+            ts * ts2
+
+
 if __name__ == '__main__':
     unittest.main()

@@ -69,14 +69,14 @@ class TimeSeries:
         class_name = type(self).__name__
         s = class_name + '['
         for i in range(len(self)):
-            if (i >2):
+            if (i >9):
                 break
             
             s = s + str(self.value[i])
             if (i < len(self)-1):
                 s = s + ', '
             
-        if (len(self) > 3):
+        if (len(self) > 10):
             s = s + '... '
         
         s = s + ']'
@@ -88,14 +88,14 @@ class TimeSeries:
         s = 'The ' + class_name + ' of length ' + str(len(self.value)) + ' is ['
         
         for i in range(len(self)):
-            if (i >2):
+            if (i >9):
                 break
             
             s = s + str(self.value[i])
             if (i < len(self)-1):
                 s = s + ', '
             
-        if (len(self) > 3):
+        if (len(self) > 10):
             s = s + '... '
         
         s = s + ']'
@@ -288,6 +288,74 @@ class TimeSeries:
                 interpolated_vals.append(v_interpolated)
 
         return TimeSeries(times, interpolated_vals)
+
+
+
+
+    # operator overloading
+
+    def _check_length_helper(self , rhs):
+        if not len(self)==len(rhs):
+            raise ValueError(str(self)+' and '+str(rhs)+' must have the same length')
+
+    def _check_timedomains_helper(self, rhs):
+        if not np.array_equal(self.times(), rhs.times()):
+            raise ValueError(str(self)+' and '+str(rhs)+' must have the same time points')
+
+    def __add__(self,rhs):
+        # check lengths are equal and time domains are same
+        try:
+            self._check_length_helper(rhs)
+            self._check_timedomains_helper(rhs)
+            newvals = [i+j for i,j in zip(self.value,rhs.value)]
+            return TimeSeries(self.time,newvals)
+        except TypeError:
+            return NotImplemented
+
+    def __radd__(self,other):
+        return self + other
+
+
+    def __sub__(self,rhs):
+        # check lengths are equal and time domains are same
+        try:
+            self._check_length_helper(rhs)
+            self._check_timedomains_helper(rhs)
+            newvals = [i-j for i,j in zip(self.value,rhs.value)]
+            return TimeSeries(self.time,newvals)
+        except TypeError:
+            return NotImplemented
+    def __rsub__(self,other):
+        return self - other
+
+
+    def __eq__(self,rhs):
+        # check lengths are equal and time domains are same
+        try:
+            self._check_length_helper(rhs)
+            self._check_timedomains_helper(rhs)
+            
+            return self.value == rhs.value
+
+        except TypeError:
+            return NotImplemented
+
+
+    def __mul__(self,rhs):
+        # check lengths are equal and time domains are same
+        try:
+            self._check_length_helper(rhs)
+            self._check_timedomains_helper(rhs)
+            newvals = [i*j for i,j in zip(self.value,rhs.value)]
+            return TimeSeries(self.time,newvals)
+
+        except TypeError:
+            return NotImplemented
+
+    def __rmul__(self,other):
+        return self * other
+
+
             
 if __name__ == "__main__":
     import doctest
