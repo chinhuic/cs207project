@@ -263,7 +263,7 @@ class TimeSeries:
                 
                 interpolated_vals.append(v_interpolated)
 
-        return self.__class__(times, interpolated_vals)
+        return TimeSeries(times, interpolated_vals)
             
 if __name__ == "__main__":
     import doctest

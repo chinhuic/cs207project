@@ -204,5 +204,86 @@ class TestArrayTimeSeries(unittest.TestCase):
         # Check results
         self.assertEqual([(0, 1), (1, 5), (2, 3), (3, 6)], iter_list)
         
+    # interpolate
+    # Test interpolation method with empty input
+    def test_interpolate_empty_input(self):
+        a = ArrayTimeSeries([0, 5, 10], [1, 2, 3])
+        b = a.interpolate([])
+        
+        self.assertTrue(np.array_equal(b.value, np.array([])))
+        self.assertTrue(np.array_equal(b.time, np.array([])))
+        self.assertTrue(isinstance(b, ArrayTimeSeries))
+        
+    # Test interpolation method with single new time that is already in TS
+    def test_interpolate_in_array_single(self):
+        a = ArrayTimeSeries([0, 5, 10], [1, 2, 3])
+        b = a.interpolate([5])
+        self.assertTrue(np.array_equal(b.value, np.array([2])))
+        self.assertTrue(np.array_equal(b.time, np.array([5])))
+        self.assertTrue(isinstance(b, ArrayTimeSeries))
+        
+    # Test interpolation method with multiple new times that are already in TS
+    def test_interpolate_in_array_multiple(self):
+        a = ArrayTimeSeries([0, 5, 10], [1, 2, 3])
+        b = a.interpolate([0, 5, 10])
+        self.assertTrue(np.array_equal(b.value, np.array([1, 2, 3])))
+        self.assertTrue(np.array_equal(b.time, np.array([0, 5, 10])))
+        self.assertTrue(isinstance(b, ArrayTimeSeries))
+    
+    # Test interpolation for stationary boundary conditions
+    def test_interpolate_stationary_min(self):
+        a = ArrayTimeSeries([0, 5, 10], [1, 2, 3])
+        b = a.interpolate([-0.1])
+        self.assertTrue(np.array_equal(b.value, np.array([1])))
+        self.assertTrue(np.array_equal(b.time, np.array([-0.1])))
+        self.assertTrue(isinstance(b, ArrayTimeSeries))
+        
+    def test_interpolate_stationary_max(self):
+        a = ArrayTimeSeries([0, 5, 10], [1, 2, 3])
+        b = a.interpolate([15])
+        self.assertTrue(np.array_equal(b.value, np.array([3])))
+        self.assertTrue(np.array_equal(b.time, np.array([15])))
+        self.assertTrue(isinstance(b, ArrayTimeSeries))
+        
+    def test_interpolate_stationary_min_max(self):
+        a = ArrayTimeSeries([0, 5, 10], [1, 2, 3])
+        b = a.interpolate([-5, 42])
+        self.assertTrue(np.array_equal(b.value, np.array([1, 3])))
+        self.assertTrue(np.array_equal(b.time, np.array([-5, 42])))
+        self.assertTrue(isinstance(b, ArrayTimeSeries))
+    
+    # Test interpolation method with simple cases provided in Week 3 handout
+    def test_interpolate_simple_1(self):
+        a = ArrayTimeSeries([0, 5, 10], [1, 2, 3])
+        b = a.interpolate([1])
+        self.assertTrue(np.array_equal(b.value, np.array([1.2])))
+        self.assertTrue(np.array_equal(b.time, np.array([1])))
+        self.assertTrue(isinstance(b, ArrayTimeSeries))
+        
+    def test_interpolate_simple_2(self):
+        a = ArrayTimeSeries([0, 5, 10], [1, 2, 3])
+        b = ArrayTimeSeries([2.5, 7.5], [100, -100])
+        c = a.interpolate(b.time)
+        self.assertTrue(np.array_equal(b.value, np.array([1.5, 2.5])))
+        self.assertTrue(np.array_equal(b.time, np.array([2.5, 7.5])))
+        self.assertTrue(isinstance(c, ArrayTimeSeries))
+        
+    # Test interpolation with float values
+    def test_interpolate_simple_2(self):
+        a = ArrayTimeSeries([0.5, 3.2], [1.96, 3.14])
+        b = a.interpolate([0.4, 2.0])
+        self.assertEqual(b.value[0], 1.96)
+        self.assertTrue(b.value[1] < 2.616 and b.value[1] > 2.615) # avoid roundoff ambiguities
+        self.assertTrue(np.array_equal(b.time, np.array([0.4, 2.0])))
+        self.assertTrue(isinstance(b, ArrayTimeSeries))
+        
+    # Test interpolation method with mixture of cases above
+    def test_interpolate_mixture(self):
+        a = ArrayTimeSeries([3, 6, 7, 8, 15, 20], [0, 5, 2, 3, 10, -3])
+        b = a.interpolate([0, 1, 6.5, 10, 22, 500])
+        self.assertTrue(np.array_equal(b.value, np.array([0, 0, 3.5, 5, -3, -3])))
+        self.assertTrue(np.array_equal(b.time, np.array([0, 1, 6.5, 10, 22, 500])))
+        self.assertTrue(isinstance(b, ArrayTimeSeries))
+        
 if __name__ == '__main__':
     unittest.main()
