@@ -1,4 +1,5 @@
 from lazy import LazyOperation, lazy_add, lazy_mul, lazy
+import numpy as np
 
 class TimeSeries:
     """
@@ -58,6 +59,10 @@ class TimeSeries:
     def __setitem__(self, index, val):
         self.value[index] = val
     
+    # Method returns True when value is in timeseries values
+    def __contains__(self, value):
+        return value in self.value
+
     
     # for length < 3, need to clean up repr
     def __repr__(self):
@@ -99,10 +104,23 @@ class TimeSeries:
     def __iter__(self):
         for val in self.value:
             yield val
+
+    def values(self):
+        return np.array(self.value)
     
+    def itervalues(self):
+        for value in self.value:
+            yield value
+
+    def times(self):
+        return np.array(self.time)
+
     def itertimes(self):
         for time in self.time:
             yield time
+
+    def items(self):
+        return [(t, v) for t, v in zip(self.time, self.value)]
             
     def iteritems(self):
         for item in zip(self.time, self.value):

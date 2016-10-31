@@ -68,6 +68,23 @@ class TestTimeSeries_Week3(unittest.TestCase):
         self.assertEqual(x.value, [2,4,7,8,10,12])
         # Check that time is unchanged
         self.assertEqual(x.time, [1,2,3,4,5,6])
+
+    # __contains__
+    def test_contains_in_series(self):
+        x = TimeSeries([1,2,3,4,5,6], [2,4,6,8,10,12])
+        self.assertTrue(8 in x)
+
+    def test_contains_not_in_series(self):
+        x = TimeSeries([1,2,3,4,5,6], [2,4,6,8,10,12])
+        self.assertFalse(42 in x)
+
+    def test_contains_checks_only_values_not_times(self):
+        x = TimeSeries([1,2,3,4,5,6], [2,4,6,8,10,12])
+        self.assertFalse(1 in x)
+
+    def test_contains_string(self):
+        x = TimeSeries(range(5),'abcde')
+        self.assertTrue('d' in x)
         
     #### __repr__ and __str__ ?
         
@@ -200,6 +217,73 @@ class TestTimeSeries_Week3(unittest.TestCase):
             iter_list.append(val)
             
         self.assertEqual(ts.value, iter_list)
+
+
+    # values
+    def test_values_empty(self):
+        ts = TimeSeries([],[])
+        x = np.array([])
+        self.assertTrue(np.array_equal(ts.values(),x))
+
+    def test_values_nonempty(self):
+        ts = TimeSeries(range(5),(2,4,6,8,10))
+        x = np.array([2,4,6,8,10])
+        self.assertTrue(np.array_equal(ts.values(),x))
+
+    def test_values_output_type(self):
+        ts = TimeSeries(range(5),(2,4,6,8,10))
+        x = np.array([])
+        self.assertEqual(type(ts.values()),type(x))
+
+    def test_values_string(self):
+        ts = TimeSeries(range(5),'abcde')
+        x = np.array(['a','b','c','d','e'])
+        self.assertTrue(np.array_equal(ts.values(),x))
+
+
+    # itervalues
+    def test_itervalues_empty(self):
+        ts_empty = TimeSeries([],[])
+        with self.assertRaises(StopIteration):
+            next(ts_empty.itervalues())
+
+    def test_itervalues_simple(self):
+        ts_simple = TimeSeries([0],[42])
+        ts_simple_itervalues = ts_simple.itervalues()
+        self.assertEqual(42, next(ts_simple_itervalues))
+        with self.assertRaises(StopIteration):
+            next(ts_simple_itervalues)
+
+    def test_itervalues_string(self):
+        ts = TimeSeries(range(5),'abcde')
+
+        iter_list = []
+        for val in ts.itervalues():
+            iter_list.append(val)
+
+        # check type
+        self.assertTrue(all(isinstance(n, str) for n in iter_list))
+        
+        # Check results
+        self.assertEqual(iter_list, ['a','b','c','d','e'])
+
+
+    # times
+    def test_times_empty(self):
+        ts = TimeSeries([],[])
+        x = np.array([])
+        self.assertTrue(np.array_equal(ts.times(),x))
+
+    def test_times_nonempty(self):
+        ts = TimeSeries(range(5),(2,4,6,8,10))
+        x = np.array([0,1,2,3,4])
+        self.assertTrue(np.array_equal(ts.times(),x))
+
+    def test_times_output_type(self):
+        ts = TimeSeries(range(5),(2,4,6,8,10))
+        x = np.array([])
+        self.assertEqual(type(ts.times()),type(x))
+
         
     # itertimes
     # Test itertimes method over TS with empty values
@@ -245,7 +329,25 @@ class TestTimeSeries_Week3(unittest.TestCase):
         
         # Check results
         self.assertEqual([0.1, 0.3, 0.6, 8.5], iter_list)
-        
+    
+
+    # items
+    def test_items_empty(self):
+        ts = TimeSeries([],[])
+        self.assertEqual([], ts.items())
+
+    def test_items_nonempty(self):
+        ts = TimeSeries([1,2,3,4,5],[2,4,6,8,10])
+        self.assertEqual([(1,2),(2,4),(3,6),(4,8),(5,10)],ts.items())
+
+    def test_items_string(self):
+        ts = TimeSeries(range(3),'abc')
+        self.assertEqual([(0,'a'), (1,'b'), (2,'c')],ts.items())
+
+    def test_items_output_type(self):
+        ts = TimeSeries(range(3),'abc')
+        self.assertEqual(type(ts.items()), list)
+
     # iteritems
     # Test iteritems method over TS with empty values
     def test_iteritems_empty(self):
