@@ -1,6 +1,7 @@
 
 from pytest import raises
 import numpy as np
+import math
 import unittest
 from TimeSeries_Class import TimeSeries
 from lazy import LazyOperation, lazy_add, lazy_mul, lazy
@@ -488,7 +489,9 @@ class TestTimeSeries_Week3(unittest.TestCase):
     
     def test_same_output_normal_v_lazy(self):
         x = TimeSeries([1,2,3,4],[1, 9, 4, 16])
-        self.assertEqual(x, x.lazy.eval())
+        ans = x.lazy.eval()
+        self.assertEqual(x.time,ans.time)
+        self.assertEqual(x.value,ans.value)
 
 
     # __add__
@@ -525,6 +528,34 @@ class TestTimeSeries_Week3(unittest.TestCase):
         with self.assertRaises(ValueError):
             result = ts+ts2
 
+    def test_add_positive_int(self):
+        ts = TimeSeries(range(5),[1,2,3,4,5])
+        ans = ts + 2
+        real_ans = TimeSeries(range(5),[3,4,5,6,7])
+        self.assertEqual(ans.time,real_ans.time)
+        self.assertEqual(ans.value,real_ans.value)
+
+    def test_add_negative_int(self):
+        ts = TimeSeries(range(5),[1,2,3,4,5])
+        ans = ts + (-2)
+        real_ans = TimeSeries(range(5),[-1,0,1,2,3])
+        self.assertEqual(ans.time,real_ans.time)
+        self.assertEqual(ans.value,real_ans.value)
+
+    def test_add_float(self):
+        ts = TimeSeries(range(5),[1,2,3,4,5])
+        ans = ts + 0.5
+        real_ans = TimeSeries(range(5),[1.5,2.5,3.5,4.5,5.5])
+        self.assertEqual(ans.time,real_ans.time)
+        self.assertEqual(ans.value,real_ans.value)
+
+    def test_add_lhs_int(self):
+        ts = TimeSeries(range(5),[1,2,3,4,5])
+        ans = 2+ts
+        real_ans = TimeSeries(range(5),[3,4,5,6,7])
+        self.assertEqual(ans.time,real_ans.time)
+        self.assertEqual(ans.value,real_ans.value)
+
     # __sub__
     def test_sub_valid_int(self):
         ts = TimeSeries(range(3),[10,10,10])
@@ -554,16 +585,47 @@ class TestTimeSeries_Week3(unittest.TestCase):
         with self.assertRaises(ValueError):
             result = ts-ts2
 
+    def test_sub_int(self):
+        ts = TimeSeries(range(5),[1,2,3,4,5])
+        ans = ts-1
+        real_ans = TimeSeries(range(5),[0,1,2,3,4])
+        self.assertEqual(ans.time,real_ans.time)
+        self.assertEqual(ans.value,real_ans.value)
+
+    def test_sub_float(self):
+        ts = TimeSeries(range(5),[1,2,3,4,5])
+        ans = ts-0.5
+        real_ans = TimeSeries(range(5),[0.5,1.5,2.5,3.5,4.5])
+        self.assertEqual(ans.time,real_ans.time)
+        self.assertEqual(ans.value,real_ans.value)
+
+    def test_sub_int_lhs(self):
+        ts = TimeSeries(range(5),[1,2,3,4,5])
+        ans = 10-ts
+        real_ans = TimeSeries(range(5),[9,8,7,6,5])
+        self.assertEqual(ans.time,real_ans.time)
+        self.assertEqual(ans.value,real_ans.value)
+
+
     # __eq__
-    def test_eq_equal_timeseries(self):
+    def test_eq_all_equal(self):
         ts = TimeSeries(range(3),[1,2,3])
         ts2 = TimeSeries(range(3),[1,2,3])
-        self.assertTrue(ts==ts2)
+        real_ans = np.array([True,True,True])
+        self.assertTrue(np.array_equal(ts==ts2,real_ans))
+        
 
-    def test_eq_unequal_timeseries(self):
+    def test_eq_all_unequal(self):
         ts = TimeSeries(range(3),[1,2,3])
         ts2 = TimeSeries(range(3),[4,5,6])
-        self.assertFalse(ts==ts2)
+        real_ans = np.array([False,False,False])
+        self.assertTrue(np.array_equal(ts==ts2,real_ans))
+
+    def test_eq_mixed(self):
+        ts = TimeSeries(range(3),[1,2,3])
+        ts2 = TimeSeries(range(3),[1,5,3])
+        real_ans = np.array([True,False,True])
+        self.assertTrue(np.array_equal(ts==ts2,real_ans))
 
     def test_eq_unequal_times(self):
         ts = TimeSeries(range(5),[1,2,3,4,5])
@@ -588,17 +650,125 @@ class TestTimeSeries_Week3(unittest.TestCase):
         self.assertEqual(ans.time,real_ans.time)
         self.assertEqual(ans.value,real_ans.value)
 
-    def test_eq_unequal_times(self):
+    def test_mul_unequal_times(self):
         ts = TimeSeries(range(5),[1,2,3,4,5])
         ts2 = TimeSeries(range(0,6),[1,1,1,1,1])
         with self.assertRaises(ValueError):
             ts * ts2
 
-    def test_eq_unequal_lengths(self):
+    def test_mul_unequal_lengths(self):
         ts = TimeSeries(range(5),[1,2,3,4,5])
         ts2 = TimeSeries(range(5),[1,1,1,1,1,2,3,4])
         with self.assertRaises(ValueError):
             ts * ts2
+
+    def test_mul_int(self):
+        ts = TimeSeries(range(3),[1,2,3])
+        ans = ts*10
+        real_ans = TimeSeries(range(3),[10,20,30])
+        self.assertEqual(ans.time,real_ans.time)
+        self.assertEqual(ans.value,real_ans.value)
+
+    def test_mul_int_lhs(self):
+        ts = TimeSeries(range(3),[1,2,3])
+        ans = 10*ts
+        real_ans = TimeSeries(range(3),[10,20,30])
+        self.assertEqual(ans.time,real_ans.time)
+        self.assertEqual(ans.value,real_ans.value)
+
+    def test_mul_neg_int(self):
+        ts = TimeSeries(range(3),[1,2,3])
+        ans = -10*ts
+        real_ans = TimeSeries(range(3),[-10,-20,-30])
+        self.assertEqual(ans.time,real_ans.time)
+        self.assertEqual(ans.value,real_ans.value)
+
+    def test_mul_zero(self):
+        ts = TimeSeries(range(3),[1,2,3])
+        ans = ts*0
+        real_ans = TimeSeries(range(3),[0,0,0])
+        self.assertEqual(ans.time,real_ans.time)
+        self.assertEqual(ans.value,real_ans.value)
+
+
+    # __neg__
+    def test_neg_positive_ints(self):
+        ts = TimeSeries(range(3),[1,2,3])
+        ans = -ts
+        real_ans = TimeSeries(range(3),[-1,-2,-3])
+        self.assertEqual(ans.time,real_ans.time)
+        self.assertEqual(ans.value,real_ans.value)
+
+    def test_neg_negative_ints(self):
+        ts = TimeSeries(range(3),[-1,-2,-3])
+        ans = -ts
+        real_ans = TimeSeries(range(3),[1,2,3])
+        self.assertEqual(ans.time,real_ans.time)
+        self.assertEqual(ans.value,real_ans.value)
+
+    def test_neg_mixed_ints(self):
+        ts = TimeSeries(range(3),[1,-2,3])
+        ans = -ts
+        real_ans = TimeSeries(range(3),[-1,2,-3])
+        self.assertEqual(ans.time,real_ans.time)
+        self.assertEqual(ans.value,real_ans.value)
+
+
+    # __pos__
+    def test_pos_positive_ints(self):
+        ts = TimeSeries(range(3),[1,2,3])
+        ans = +ts
+        real_ans = TimeSeries(range(3),[1,2,3])
+        self.assertEqual(ans.time,real_ans.time)
+        self.assertEqual(ans.value,real_ans.value)
+        
+
+    def test_pos_negative_ints(self):
+        ts = TimeSeries(range(3),[-1,-2,-3])
+        ans = +ts
+        real_ans = TimeSeries(range(3),[-1,-2,-3])
+        self.assertEqual(ans.time,real_ans.time)
+        self.assertEqual(ans.value,real_ans.value)
+
+    def test_pos_mixed_ints(self):
+        ts = TimeSeries(range(3),[-1,2,-3])
+        ans = +ts
+        real_ans = TimeSeries(range(3),[-1,2,-3])
+        self.assertEqual(ans.time,real_ans.time)
+        self.assertEqual(ans.value,real_ans.value)
+
+
+    # __abs__
+    def test_abs_int_result(self):
+        ts = TimeSeries(range(3),[1,1,1,1])
+        self.assertEqual(abs(ts),2)
+
+    def test_abs_nonint_result(self):
+        ts = TimeSeries(range(3),[1,2,3])
+        self.assertEqual(abs(ts),math.sqrt(1+4+9))
+
+    # __bool__
+    def test_bool_true(self):
+        ts = TimeSeries(range(3),[1,1,1,1])
+        self.assertTrue(abs(ts))
+
+    def test_bool_false(self):
+        ts = TimeSeries(range(1),[0])
+        self.assertFalse(abs(ts))
+    
+    def test_bool_empty(self):
+        ts = TimeSeries([],[])
+        self.assertFalse(abs(ts))
+
+
+    # test against numpy array input
+    def test_numpy_array_value(self):
+        with self.assertRaises(NotImplementedError):
+            ts = TimeSeries(range(3),np.array([1,2,3]))
+
+    def test_numpy_array_time(self):
+        with self.assertRaises(NotImplementedError):
+            ts = TimeSeries(np.array([1,2,3]),[4,5,6])
 
 
 if __name__ == '__main__':
