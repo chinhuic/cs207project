@@ -289,6 +289,88 @@ class TestTimeSeries_Week3(unittest.TestCase):
         
         # Check results
         self.assertEqual([(1.2, 1.5), (1.21, 5.2), (1.41, 3.21), (1.7, 6.3)], iter_list)
+        
+    # interpolate
+    # Test interpolation method with empty input
+    def test_interpolate_empty_input(self):
+        a = TimeSeries([0, 5, 10], [1, 2, 3])
+        b = a.interpolate([])
+        
+        self.assertEqual(b.value, [])
+        self.assertEqual(b.time, [])
+        self.assertTrue(isinstance(b, TimeSeries))
+        
+    # Test interpolation method with single new time that is already in TS
+    def test_interpolate_in_array_single(self):
+        a = TimeSeries([0, 5, 10], [1, 2, 3])
+        b = a.interpolate([5])
+        self.assertEqual(b.value, [2])
+        self.assertEqual(b.time, [5])
+        self.assertTrue(isinstance(b, TimeSeries))
+        
+    # Test interpolation method with multiple new times that are already in TS
+    def test_interpolate_in_array_multiple(self):
+        a = TimeSeries([0, 5, 10], [1, 2, 3])
+        b = a.interpolate([0, 5, 10])
+        self.assertEqual(b.value, [1, 2, 3])
+        self.assertEqual(b.time, [0, 5, 10])
+        self.assertTrue(isinstance(b, TimeSeries))
+        
+    # Test interpolation for stationary boundary conditions
+    def test_interpolate_stationary_min(self):
+        a = TimeSeries([0, 5, 10], [1, 2, 3])
+        b = a.interpolate([-0.1])
+        self.assertEqual(b.value, [1])
+        self.assertEqual(b.time, [-0.1])
+        self.assertTrue(isinstance(b, TimeSeries))
+        
+    def test_interpolate_stationary_max(self):
+        a = TimeSeries([0, 5, 10], [1, 2, 3])
+        b = a.interpolate([15])
+        self.assertEqual(b.value, [3])
+        self.assertEqual(b.time, [15])
+        self.assertTrue(isinstance(b, TimeSeries))
+        
+    def test_interpolate_stationary_min_max(self):
+        a = TimeSeries([0, 5, 10], [1, 2, 3])
+        b = a.interpolate([-5, 42])
+        self.assertEqual(b.value, [1, 3])
+        self.assertEqual(b.time, [-5, 42])
+        self.assertTrue(isinstance(b, TimeSeries))
+                
+    # Test interpolation method with simple cases provided in Week 3 handout
+    def test_interpolate_simple_1(self):
+        a = TimeSeries([0, 5, 10], [1, 2, 3])
+        b = a.interpolate([1])
+        self.assertEqual(b.value, [1.2])
+        self.assertEqual(b.time, [1])
+        self.assertTrue(isinstance(b, TimeSeries))
+        
+    def test_interpolate_simple_2(self):
+        a = TimeSeries([0, 5, 10], [1, 2, 3])
+        b = TimeSeries([2.5, 7.5], [100, -100])
+        c = a.interpolate(b.time)
+        self.assertEqual(c.value, [1.5, 2.5])
+        self.assertEqual(c.time, [2.5, 7.5])
+        self.assertTrue(isinstance(c, TimeSeries))
+        
+    # Test interpolation with float values
+    def test_interpolate_simple_2(self):
+        a = TimeSeries([0.5, 3.2], [1.96, 3.14])
+        b = a.interpolate([0.4, 2.0])
+        self.assertEqual(b.value[0], 1.96)
+        self.assertTrue(b.value[1] < 2.616 and b.value[1] > 2.615) # avoid roundoff ambiguities
+        self.assertEqual(b.time, [0.4, 2.0])
+        self.assertTrue(isinstance(b, TimeSeries))
+        
+    # Test interpolation method with mixture of cases above
+    def test_interpolate_mixture(self):
+        a = TimeSeries([3, 6, 7, 8, 15, 20], [0, 5, 2, 3, 10, -3])
+        b = a.interpolate([0, 1, 6.5, 10, 22, 500])
+        self.assertEqual(b.value, [0, 0, 3.5, 5, -3, -3])
+        self.assertEqual(b.time, [0, 1, 6.5, 10, 22, 500])
+        self.assertTrue(isinstance(b, TimeSeries))
+    
     
 if __name__ == '__main__':
     unittest.main()
