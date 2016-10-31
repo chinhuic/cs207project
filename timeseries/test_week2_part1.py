@@ -370,6 +370,22 @@ class TestTimeSeries_Week3(unittest.TestCase):
         self.assertEqual(b.value, [0, 0, 3.5, 5, -3, -3])
         self.assertEqual(b.time, [0, 1, 6.5, 10, 22, 500])
         self.assertTrue(isinstance(b, TimeSeries))
+        
+    @lazy
+    def check_length(self, a,b):
+        return len(a)==len(b)
+    
+    def test_lazy_length_check_with_normal_construction(self):
+        thunk = self.check_length(TimeSeries(range(0,4),range(1,5)), TimeSeries(range(1,5),range(2,6)))
+        self.assertTrue(thunk.eval() == True)
+
+    def test_lazy_length_check_with_lazy_construction(self):
+        thunk = self.check_length(TimeSeries(range(0,4),range(1,5)).lazy, TimeSeries(range(1,5),range(2,6)).lazy)
+        self.assertTrue(thunk.eval() == True)
+    
+    def test_same_output_normal_v_lazy(self):
+        x = TimeSeries([1,2,3,4],[1, 9, 4, 16])
+        self.assertEqual(x, x.lazy.eval())
     
     
 if __name__ == '__main__':
