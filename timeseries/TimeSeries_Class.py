@@ -1,4 +1,7 @@
 from lazy import LazyOperation, lazy_add, lazy_mul, lazy
+import numpy as np
+import numbers
+import math
 
 class TimeSeries:
     """
@@ -41,8 +44,11 @@ class TimeSeries:
     #  times: contains the ordered time points of the time series
     #  value: contains the time series ordered data
     def __init__(self, times, values):
-        self.time = [t for t in times]
-        self.value = [x for x in values]
+        if type(times) == type(np.array([])) or type(values) == type(np.array([])):
+            raise NotImplementedError
+        else:
+            self.time = [t for t in times]
+            self.value = [x for x in values]
         
     # Method len(ts), returns length of timeseries
     def __len__(self):
@@ -58,20 +64,24 @@ class TimeSeries:
     def __setitem__(self, index, val):
         self.value[index] = val
     
+    # Method returns True when value is in timeseries values
+    def __contains__(self, value):
+        return value in self.value
+
     
     # for length < 3, need to clean up repr
     def __repr__(self):
         class_name = type(self).__name__
         s = class_name + '['
         for i in range(len(self)):
-            if (i >2):
+            if (i >9):
                 break
             
             s = s + str(self.value[i])
             if (i < len(self)-1):
                 s = s + ', '
             
-        if (len(self) > 3):
+        if (len(self) > 10):
             s = s + '... '
         
         s = s + ']'
@@ -83,14 +93,14 @@ class TimeSeries:
         s = 'The ' + class_name + ' of length ' + str(len(self.value)) + ' is ['
         
         for i in range(len(self)):
-            if (i >2):
+            if (i >9):
                 break
             
             s = s + str(self.value[i])
             if (i < len(self)-1):
                 s = s + ', '
             
-        if (len(self) > 3):
+        if (len(self) > 10):
             s = s + '... '
         
         s = s + ']'
@@ -99,10 +109,23 @@ class TimeSeries:
     def __iter__(self):
         for val in self.value:
             yield val
+
+    def values(self):
+        return np.array(self.value)
     
+    def itervalues(self):
+        for value in self.value:
+            yield value
+
+    def times(self):
+        return np.array(self.time)
+
     def itertimes(self):
         for time in self.time:
             yield time
+
+    def items(self):
+        return [(t, v) for t, v in zip(self.time, self.value)]
             
     def iteritems(self):
         for item in zip(self.time, self.value):
@@ -270,6 +293,108 @@ class TimeSeries:
                 interpolated_vals.append(v_interpolated)
 
         return TimeSeries(times, interpolated_vals)
+
+
+
+
+    # operator overloading
+
+    def _check_length_helper(self , rhs):
+        if not len(self)==len(rhs):
+            raise ValueError(str(self)+' and '+str(rhs)+' must have the same length')
+
+    def _check_timedomains_helper(self, rhs):
+        if not np.array_equal(self.times(), rhs.times()):
+            raise ValueError(str(self)+' and '+str(rhs)+' must have the same time points')
+
+    # addition
+    def __add__(self,rhs):
+        # check lengths are equal and time domains are same
+        try:
+            # handling case of a constant
+            if isinstance(rhs, numbers.Real):
+                newvals = [i+rhs for i in self.value]
+            else:
+                self._check_length_helper(rhs)
+                self._check_timedomains_helper(rhs)
+                newvals = [i+j for i,j in zip(self.value,rhs.value)]
+            return TimeSeries(self.time,newvals)
+        except TypeError:
+            return NotImplemented
+
+    def __radd__(self,other):
+        return self + other
+
+    # subtraction
+    def __sub__(self,rhs):
+        # check lengths are equal and time domains are same
+        try:
+            # handling case of a constant
+            if isinstance(rhs, numbers.Real):
+                newvals = [i-rhs for i in self.value]
+            else:
+                self._check_length_helper(rhs)
+                self._check_timedomains_helper(rhs)
+                newvals = [i-j for i,j in zip(self.value,rhs.value)]
+            return TimeSeries(self.time,newvals)
+        except TypeError:
+            return NotImplemented
+    
+    def __rsub__(self,other):
+        if isinstance(other,numbers.Real):
+            newvals = [other-i for i in self.value]
+            return TimeSeries(self.time,newvals)
+        else:
+            return self-other
+
+    # equality
+    def __eq__(self,rhs):
+        # check lengths are equal and time domains are same
+        try:
+            self._check_length_helper(rhs)
+            self._check_timedomains_helper(rhs)
+            #return all(i==j for i,j in zip(self.value,rhs.value))
+            truths = [i==j for i,j in zip(self.value,rhs.value)]
+            return np.array(truths)
+
+        except TypeError:
+            return NotImplemented
+
+    # multiplication
+    def __mul__(self,rhs):
+        # check lengths are equal and time domains are same
+        try:
+            # handling case of a constant
+            if isinstance(rhs,numbers.Real):
+                newvals = [i*rhs for i in self.value]
+            else:
+                self._check_length_helper(rhs)
+                self._check_timedomains_helper(rhs)
+                newvals = [i*j for i,j in zip(self.value,rhs.value)]
+            return TimeSeries(self.time,newvals)
+
+        except TypeError:
+            return NotImplemented
+
+    def __rmul__(self,other):
+        return self * other
+
+    #signs
+    def __neg__(self):
+        newvals = [-i for i in self.value]
+        return TimeSeries(self.time,newvals)
+
+    def __pos__(self):
+        return TimeSeries(self.time,self.value)
+
+    # square root of the sum of the squares of values
+    def __abs__(self):
+        return math.sqrt(sum(x*x for x in self.value))
+
+    def __bool__(self): 
+        return bool(abs(self))
+
+
             
 if __name__ == "__main__":
     import doctest

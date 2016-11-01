@@ -1,6 +1,7 @@
 
 from pytest import raises
 import numpy as np
+import math
 import unittest
 from TimeSeries_Class import TimeSeries
 from lazy import LazyOperation, lazy_add, lazy_mul, lazy
@@ -68,6 +69,23 @@ class TestTimeSeries_Week3(unittest.TestCase):
         self.assertEqual(x.value, [2,4,7,8,10,12])
         # Check that time is unchanged
         self.assertEqual(x.time, [1,2,3,4,5,6])
+
+    # __contains__
+    def test_contains_in_series(self):
+        x = TimeSeries([1,2,3,4,5,6], [2,4,6,8,10,12])
+        self.assertTrue(8 in x)
+
+    def test_contains_not_in_series(self):
+        x = TimeSeries([1,2,3,4,5,6], [2,4,6,8,10,12])
+        self.assertFalse(42 in x)
+
+    def test_contains_checks_only_values_not_times(self):
+        x = TimeSeries([1,2,3,4,5,6], [2,4,6,8,10,12])
+        self.assertFalse(1 in x)
+
+    def test_contains_string(self):
+        x = TimeSeries(range(5),'abcde')
+        self.assertTrue('d' in x)
         
     #### __repr__ and __str__ ?
         
@@ -200,6 +218,73 @@ class TestTimeSeries_Week3(unittest.TestCase):
             iter_list.append(val)
             
         self.assertEqual(ts.value, iter_list)
+
+
+    # values
+    def test_values_empty(self):
+        ts = TimeSeries([],[])
+        x = np.array([])
+        self.assertTrue(np.array_equal(ts.values(),x))
+
+    def test_values_nonempty(self):
+        ts = TimeSeries(range(5),(2,4,6,8,10))
+        x = np.array([2,4,6,8,10])
+        self.assertTrue(np.array_equal(ts.values(),x))
+
+    def test_values_output_type(self):
+        ts = TimeSeries(range(5),(2,4,6,8,10))
+        x = np.array([])
+        self.assertEqual(type(ts.values()),type(x))
+
+    def test_values_string(self):
+        ts = TimeSeries(range(5),'abcde')
+        x = np.array(['a','b','c','d','e'])
+        self.assertTrue(np.array_equal(ts.values(),x))
+
+
+    # itervalues
+    def test_itervalues_empty(self):
+        ts_empty = TimeSeries([],[])
+        with self.assertRaises(StopIteration):
+            next(ts_empty.itervalues())
+
+    def test_itervalues_simple(self):
+        ts_simple = TimeSeries([0],[42])
+        ts_simple_itervalues = ts_simple.itervalues()
+        self.assertEqual(42, next(ts_simple_itervalues))
+        with self.assertRaises(StopIteration):
+            next(ts_simple_itervalues)
+
+    def test_itervalues_string(self):
+        ts = TimeSeries(range(5),'abcde')
+
+        iter_list = []
+        for val in ts.itervalues():
+            iter_list.append(val)
+
+        # check type
+        self.assertTrue(all(isinstance(n, str) for n in iter_list))
+        
+        # Check results
+        self.assertEqual(iter_list, ['a','b','c','d','e'])
+
+
+    # times
+    def test_times_empty(self):
+        ts = TimeSeries([],[])
+        x = np.array([])
+        self.assertTrue(np.array_equal(ts.times(),x))
+
+    def test_times_nonempty(self):
+        ts = TimeSeries(range(5),(2,4,6,8,10))
+        x = np.array([0,1,2,3,4])
+        self.assertTrue(np.array_equal(ts.times(),x))
+
+    def test_times_output_type(self):
+        ts = TimeSeries(range(5),(2,4,6,8,10))
+        x = np.array([])
+        self.assertEqual(type(ts.times()),type(x))
+
         
     # itertimes
     # Test itertimes method over TS with empty values
@@ -245,7 +330,25 @@ class TestTimeSeries_Week3(unittest.TestCase):
         
         # Check results
         self.assertEqual([0.1, 0.3, 0.6, 8.5], iter_list)
-        
+    
+
+    # items
+    def test_items_empty(self):
+        ts = TimeSeries([],[])
+        self.assertEqual([], ts.items())
+
+    def test_items_nonempty(self):
+        ts = TimeSeries([1,2,3,4,5],[2,4,6,8,10])
+        self.assertEqual([(1,2),(2,4),(3,6),(4,8),(5,10)],ts.items())
+
+    def test_items_string(self):
+        ts = TimeSeries(range(3),'abc')
+        self.assertEqual([(0,'a'), (1,'b'), (2,'c')],ts.items())
+
+    def test_items_output_type(self):
+        ts = TimeSeries(range(3),'abc')
+        self.assertEqual(type(ts.items()), list)
+
     # iteritems
     # Test iteritems method over TS with empty values
     def test_iteritems_empty(self):
@@ -386,8 +489,287 @@ class TestTimeSeries_Week3(unittest.TestCase):
     
     def test_same_output_normal_v_lazy(self):
         x = TimeSeries([1,2,3,4],[1, 9, 4, 16])
-        self.assertEqual(x, x.lazy.eval())
+        ans = x.lazy.eval()
+        self.assertEqual(x.time,ans.time)
+        self.assertEqual(x.value,ans.value)
+
+
+    # __add__
+    # test infix addition
+    def test_add_valid_int(self):
+        ts = TimeSeries(range(5),[1,2,3,4,5])
+        ts2 = TimeSeries(range(5),[1,1,1,1,1])
+        
+        ans = ts+ts2
+        real_ans = TimeSeries(range(5),[2,3,4,5,6])
+
+        self.assertEqual(ans.time,real_ans.time)
+        self.assertEqual(ans.value,real_ans.value)
+
+    def test_add_valid_string(self):
+        ts = TimeSeries(range(5),'abcde')
+        ts2 = TimeSeries(range(5),'qqqqq')
+
+        ans = ts+ts2
+        real_ans = TimeSeries(range(5),['aq','bq','cq','dq','eq'])
+
+        self.assertEqual(ans.time,real_ans.time)
+        self.assertEqual(ans.value,real_ans.value)
+
+    def test_add_unequal_times(self):
+        ts = TimeSeries(range(5),[1,2,3,4,5])
+        ts2 = TimeSeries(range(0,6),[1,1,1,1,1])
+        with self.assertRaises(ValueError):
+            result = ts+ts2
+
+    def test_add_unequal_lengths(self):
+        ts = TimeSeries(range(5),[1,2,3,4,5])
+        ts2 = TimeSeries(range(5),[1,1,1,1,1,2,3,4])
+        with self.assertRaises(ValueError):
+            result = ts+ts2
+
+    def test_add_positive_int(self):
+        ts = TimeSeries(range(5),[1,2,3,4,5])
+        ans = ts + 2
+        real_ans = TimeSeries(range(5),[3,4,5,6,7])
+        self.assertEqual(ans.time,real_ans.time)
+        self.assertEqual(ans.value,real_ans.value)
+
+    def test_add_negative_int(self):
+        ts = TimeSeries(range(5),[1,2,3,4,5])
+        ans = ts + (-2)
+        real_ans = TimeSeries(range(5),[-1,0,1,2,3])
+        self.assertEqual(ans.time,real_ans.time)
+        self.assertEqual(ans.value,real_ans.value)
+
+    def test_add_float(self):
+        ts = TimeSeries(range(5),[1,2,3,4,5])
+        ans = ts + 0.5
+        real_ans = TimeSeries(range(5),[1.5,2.5,3.5,4.5,5.5])
+        self.assertEqual(ans.time,real_ans.time)
+        self.assertEqual(ans.value,real_ans.value)
+
+    def test_add_lhs_int(self):
+        ts = TimeSeries(range(5),[1,2,3,4,5])
+        ans = 2+ts
+        real_ans = TimeSeries(range(5),[3,4,5,6,7])
+        self.assertEqual(ans.time,real_ans.time)
+        self.assertEqual(ans.value,real_ans.value)
+
+    # __sub__
+    def test_sub_valid_int(self):
+        ts = TimeSeries(range(3),[10,10,10])
+        ts2 = TimeSeries(range(3),[1,2,3])
+
+        ans = ts-ts2
+        real_ans = TimeSeries(range(3),[9,8,7])
+
+        self.assertEqual(ans.time,real_ans.time)
+        self.assertEqual(ans.value,real_ans.value)
+
+    def test_sub_str(self):
+        ts = TimeSeries(range(3),'abc')
+        ts2 = TimeSeries(range(3),'def')
+        with self.assertRaises(TypeError):
+            result = ts-ts2
+
+    def test_sub_unequal_times(self):
+        ts = TimeSeries(range(5),[1,2,3,4,5])
+        ts2 = TimeSeries(range(0,6),[1,1,1,1,1])
+        with self.assertRaises(ValueError):
+            result = ts-ts2
+
+    def test_sub_unequal_lengths(self):
+        ts = TimeSeries(range(5),[1,2,3,4,5])
+        ts2 = TimeSeries(range(5),[1,1,1,1,1,2,3,4])
+        with self.assertRaises(ValueError):
+            result = ts-ts2
+
+    def test_sub_int(self):
+        ts = TimeSeries(range(5),[1,2,3,4,5])
+        ans = ts-1
+        real_ans = TimeSeries(range(5),[0,1,2,3,4])
+        self.assertEqual(ans.time,real_ans.time)
+        self.assertEqual(ans.value,real_ans.value)
+
+    def test_sub_float(self):
+        ts = TimeSeries(range(5),[1,2,3,4,5])
+        ans = ts-0.5
+        real_ans = TimeSeries(range(5),[0.5,1.5,2.5,3.5,4.5])
+        self.assertEqual(ans.time,real_ans.time)
+        self.assertEqual(ans.value,real_ans.value)
+
+    def test_sub_int_lhs(self):
+        ts = TimeSeries(range(5),[1,2,3,4,5])
+        ans = 10-ts
+        real_ans = TimeSeries(range(5),[9,8,7,6,5])
+        self.assertEqual(ans.time,real_ans.time)
+        self.assertEqual(ans.value,real_ans.value)
+
+
+    # __eq__
+    def test_eq_all_equal(self):
+        ts = TimeSeries(range(3),[1,2,3])
+        ts2 = TimeSeries(range(3),[1,2,3])
+        real_ans = np.array([True,True,True])
+        self.assertTrue(np.array_equal(ts==ts2,real_ans))
+        
+
+    def test_eq_all_unequal(self):
+        ts = TimeSeries(range(3),[1,2,3])
+        ts2 = TimeSeries(range(3),[4,5,6])
+        real_ans = np.array([False,False,False])
+        self.assertTrue(np.array_equal(ts==ts2,real_ans))
+
+    def test_eq_mixed(self):
+        ts = TimeSeries(range(3),[1,2,3])
+        ts2 = TimeSeries(range(3),[1,5,3])
+        real_ans = np.array([True,False,True])
+        self.assertTrue(np.array_equal(ts==ts2,real_ans))
+
+    def test_eq_unequal_times(self):
+        ts = TimeSeries(range(5),[1,2,3,4,5])
+        ts2 = TimeSeries(range(0,6),[1,1,1,1,1])
+        with self.assertRaises(ValueError):
+            ts == ts2
+
+    def test_eq_unequal_lengths(self):
+        ts = TimeSeries(range(5),[1,2,3,4,5])
+        ts2 = TimeSeries(range(5),[1,1,1,1,1,2,3,4])
+        with self.assertRaises(ValueError):
+            ts == ts2
+
+    # __mul__
+    def test_mul_ints(self):
+        ts = TimeSeries(range(3),[10,10,10])
+        ts2 = TimeSeries(range(3),[1,2,3])
+        ans = ts*ts2
+
+        real_ans = TimeSeries(range(3),[10,20,30])
+
+        self.assertEqual(ans.time,real_ans.time)
+        self.assertEqual(ans.value,real_ans.value)
+
+    def test_mul_unequal_times(self):
+        ts = TimeSeries(range(5),[1,2,3,4,5])
+        ts2 = TimeSeries(range(0,6),[1,1,1,1,1])
+        with self.assertRaises(ValueError):
+            ts * ts2
+
+    def test_mul_unequal_lengths(self):
+        ts = TimeSeries(range(5),[1,2,3,4,5])
+        ts2 = TimeSeries(range(5),[1,1,1,1,1,2,3,4])
+        with self.assertRaises(ValueError):
+            ts * ts2
+
+    def test_mul_int(self):
+        ts = TimeSeries(range(3),[1,2,3])
+        ans = ts*10
+        real_ans = TimeSeries(range(3),[10,20,30])
+        self.assertEqual(ans.time,real_ans.time)
+        self.assertEqual(ans.value,real_ans.value)
+
+    def test_mul_int_lhs(self):
+        ts = TimeSeries(range(3),[1,2,3])
+        ans = 10*ts
+        real_ans = TimeSeries(range(3),[10,20,30])
+        self.assertEqual(ans.time,real_ans.time)
+        self.assertEqual(ans.value,real_ans.value)
+
+    def test_mul_neg_int(self):
+        ts = TimeSeries(range(3),[1,2,3])
+        ans = -10*ts
+        real_ans = TimeSeries(range(3),[-10,-20,-30])
+        self.assertEqual(ans.time,real_ans.time)
+        self.assertEqual(ans.value,real_ans.value)
+
+    def test_mul_zero(self):
+        ts = TimeSeries(range(3),[1,2,3])
+        ans = ts*0
+        real_ans = TimeSeries(range(3),[0,0,0])
+        self.assertEqual(ans.time,real_ans.time)
+        self.assertEqual(ans.value,real_ans.value)
+
+
+    # __neg__
+    def test_neg_positive_ints(self):
+        ts = TimeSeries(range(3),[1,2,3])
+        ans = -ts
+        real_ans = TimeSeries(range(3),[-1,-2,-3])
+        self.assertEqual(ans.time,real_ans.time)
+        self.assertEqual(ans.value,real_ans.value)
+
+    def test_neg_negative_ints(self):
+        ts = TimeSeries(range(3),[-1,-2,-3])
+        ans = -ts
+        real_ans = TimeSeries(range(3),[1,2,3])
+        self.assertEqual(ans.time,real_ans.time)
+        self.assertEqual(ans.value,real_ans.value)
+
+    def test_neg_mixed_ints(self):
+        ts = TimeSeries(range(3),[1,-2,3])
+        ans = -ts
+        real_ans = TimeSeries(range(3),[-1,2,-3])
+        self.assertEqual(ans.time,real_ans.time)
+        self.assertEqual(ans.value,real_ans.value)
+
+
+    # __pos__
+    def test_pos_positive_ints(self):
+        ts = TimeSeries(range(3),[1,2,3])
+        ans = +ts
+        real_ans = TimeSeries(range(3),[1,2,3])
+        self.assertEqual(ans.time,real_ans.time)
+        self.assertEqual(ans.value,real_ans.value)
+        
+
+    def test_pos_negative_ints(self):
+        ts = TimeSeries(range(3),[-1,-2,-3])
+        ans = +ts
+        real_ans = TimeSeries(range(3),[-1,-2,-3])
+        self.assertEqual(ans.time,real_ans.time)
+        self.assertEqual(ans.value,real_ans.value)
+
+    def test_pos_mixed_ints(self):
+        ts = TimeSeries(range(3),[-1,2,-3])
+        ans = +ts
+        real_ans = TimeSeries(range(3),[-1,2,-3])
+        self.assertEqual(ans.time,real_ans.time)
+        self.assertEqual(ans.value,real_ans.value)
+
+
+    # __abs__
+    def test_abs_int_result(self):
+        ts = TimeSeries(range(3),[1,1,1,1])
+        self.assertEqual(abs(ts),2)
+
+    def test_abs_nonint_result(self):
+        ts = TimeSeries(range(3),[1,2,3])
+        self.assertEqual(abs(ts),math.sqrt(1+4+9))
+
+    # __bool__
+    def test_bool_true(self):
+        ts = TimeSeries(range(3),[1,1,1,1])
+        self.assertTrue(abs(ts))
+
+    def test_bool_false(self):
+        ts = TimeSeries(range(1),[0])
+        self.assertFalse(abs(ts))
     
-    
+    def test_bool_empty(self):
+        ts = TimeSeries([],[])
+        self.assertFalse(abs(ts))
+
+
+    # test against numpy array input
+    def test_numpy_array_value(self):
+        with self.assertRaises(NotImplementedError):
+            ts = TimeSeries(range(3),np.array([1,2,3]))
+
+    def test_numpy_array_time(self):
+        with self.assertRaises(NotImplementedError):
+            ts = TimeSeries(np.array([1,2,3]),[4,5,6])
+
+
 if __name__ == '__main__':
     unittest.main()
