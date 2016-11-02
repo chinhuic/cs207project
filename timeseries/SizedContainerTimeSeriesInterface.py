@@ -5,16 +5,11 @@ import numpy as np
 import numbers
 import math
 
-
-
-
-
-
-
-
 class SizedContainerTimeSeriesInterface(TimeSeriesInterface, abc.ABC):
     """
-    
+       An ABC (abstract base class) or interface that inherits from the TimeSeriesInterface ABC.
+       This has the methods which pertain to the "containerness" of the timeseries: the notions of
+       indexing, length, and returning arrays in addition to iterators
     """
 
     # Method to return the length of  the timeseries
@@ -22,7 +17,7 @@ class SizedContainerTimeSeriesInterface(TimeSeriesInterface, abc.ABC):
     @abc.abstractmethod
     def __len__(self):
         """
-        implemented differently in both the classes
+        Returns the length of the timeseries. Implemented differently in both the classes.
         """
        
     
@@ -197,5 +192,3 @@ class SizedContainerTimeSeriesInterface(TimeSeriesInterface, abc.ABC):
     def __bool__(self): 
         return bool(abs(self))
     
-
-            
