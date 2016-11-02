@@ -29,6 +29,20 @@ class SizedContainerTimeSeriesInterface(TimeSeriesInterface, abc.ABC):
         differently in TimeSeries and ArrayTimeSeries classes
         """
         
+    def __iter__(self):
+        for val in self._value:
+            yield val
+
+    def itervalues(self):
+        return iter(self._value)
+
+    def itertimes(self):
+        return iter(self._time)
+    
+    def iteritems(self):
+        return iter(zip(self._time, self._value))
+
+        
     # Method that should return item value given the index
     # use as ts[index]    
     def __getitem__(self, index):
