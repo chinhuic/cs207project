@@ -1,5 +1,9 @@
-from TimeSeries_Class import TimeSeries # Change library name later
+
+from TimeSeries import TimeSeries
+from lazy import LazyOperation, lazy_add, lazy_mul, lazy
+import math
 import numpy as np
+import numbers
 
 class ArrayTimeSeries(TimeSeries):
     """
@@ -8,9 +12,9 @@ class ArrayTimeSeries(TimeSeries):
     
     Parameters
     ----------
-    times : sequence
+    times : sequence (numerical)
         A sequence containing the ordered time points
-    values : sequence
+    values : sequence (numerical)
         A sequence containing the values corresponding to the time data. 
         
     Notes
@@ -18,6 +22,8 @@ class ArrayTimeSeries(TimeSeries):
     PRE:
       - `times` must be in sorted (monotonically increasing) order
       - `times` and `values` must be of the same length
+      - `times` and `values` data must be numeric
+      - `times` and `values` must be sequence-like objects
       - data in `values` are ordered with their corresponding time, i.e.
         1st element in `values` corresponds to 1st time point, 2nd element
         in `values` corresponds to 2nd time point, etc.
@@ -27,25 +33,34 @@ class ArrayTimeSeries(TimeSeries):
           
     Examples
     --------
-    >>> at1 = ArrayTimeSeries([0, 1, 2], [1, 2, 3])
-    >>> at1.value
-    array([1, 2, 3])
-    >>> at1.time
-    array([0, 1, 2])
-    >>> len(at1)
+    >>> at = ArrayTimeSeries([0, 1, 2], [1, 2, 3])
+    >>> len(at)
     3
-    
-    >>> at2 = ArrayTimeSeries((0, 2, 4, 7, 10), [4, 1, 10, 2, 100])
-    >>> at2.value
-    array([  4,   1,  10,   2, 100])
-    >>> at2.time
-    array([ 0,  2,  4,  7, 10])
-    >>> len(at2)
-    5
-    
+    >>> at[1]
+    2
+    >>> at[2] = 4
+    >>> at[2]
+    4
     """
     
     def __init__(self, times, values):
+        """
+        Constructor for ArrayTimeSeries subclass. Initializes ArrayTimeSeries with 
+        time values given in `times` and corresponding values given in `values`
+        
+        Checks that:
+          - `times` and `values` are of equal length
+          - times in `times` are all distinct
+          - data in `times` and `values` are numeric
+          - `times` and `values` are sequences
+          
+        Parameters
+        ----------
+        times : sequence (numerical)
+            A sequence containing the ordered time points
+        values : sequence (numerical)
+            A sequence containing the values corresponding to the time data. 
+        """
         # Check length
         if len(times) != len(values):
             raise ValueError('Input times and values must have the same length')
@@ -54,13 +69,27 @@ class ArrayTimeSeries(TimeSeries):
         # (we don't check sortedness due to time complexity)
         if len(times) != len(set(times)):
             raise ValueError('Input times and values must have the same length')
+            
+        # Check if input data is numeric
+        if not all(isinstance(x, numbers.Number) for x in values):
+            raise TypeError('Data must be numerical!')
+            
+        if not all(isinstance(t, numbers.Number) for t in times):
+            raise TypeError('Time values must be numerical!')
+            
+        # Check if input data is sequence-like
+        try:
+            iter(values)
+            iter(times)
+        except:
+            raise TypeError('Data must be a sequence!')
         
-        self.length = len([x for x in values])
-        self.value = np.array([x for x in values])
-        self.time = np.array([t for t in times])
+        self._length = len([x for x in values])
+        self._value = np.array([x for x in values])
+        self._time = np.array([t for t in times])
     
     def __len__(self):
-        return self.length
+        return self._length
     
     @staticmethod
     def binsearch_helper(seq, val):
@@ -182,21 +211,21 @@ class ArrayTimeSeries(TimeSeries):
         # Sequentially compute interpolated values for each time point
         for t in times:
             # If time point already exists, then just use the corresponding value
-            if t in self.time:      
-                interpolated_vals.append(self.value[np.where(self.time == t)][0])
+            if t in self._time:      
+                interpolated_vals.append(self._value[np.where(self._time == t)][0])
                 
             # If time is less than lower stationary boundary
-            elif t < self.time[0]:
-                interpolated_vals.append(self.value[0])
+            elif t < self._time[0]:
+                interpolated_vals.append(self._value[0])
       
             # If time is greater than upper stationary boundary
-            elif t > self.time[-1]:    
-                interpolated_vals.append(self.value[-1]) 
+            elif t > self._time[-1]:    
+                interpolated_vals.append(self._value[-1]) 
  
             # Search for indices of two nearest time points using binary search
             # and compute the linear interpolation from the values of these nearest points
             else:       
-                next_index = self.binsearch_helper(self.time, t)
+                next_index = self.binsearch_helper(self._time, t)
                 prev_index = next_index - 1
                 
                 # Interpolate using the following formula:
@@ -209,8 +238,8 @@ class ArrayTimeSeries(TimeSeries):
                 #   v_1 - value at upper point
             
                 # Obtain the quantities above
-                v_0, v_1 = self.value[prev_index], self.value[next_index]
-                t_0, t_1 = self.time[prev_index], self.time[next_index]
+                v_0, v_1 = self._value[prev_index], self._value[next_index]
+                t_0, t_1 = self._time[prev_index], self._time[next_index]
                  
                 # Compute interpolation
                 v_interpolated = v_0 + ((t - t_0) * (v_1 - v_0) / (t_1 - t_0))
