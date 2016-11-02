@@ -6,7 +6,7 @@ import numpy as np
 import numbers
 from SizedContainerTimeSeriesInterface import SizedContainerTimeSeriesInterface
 
-class ArrayTimeSeries(TimeSeries):
+class ArrayTimeSeries(SizedContainerTimeSeriesInterface):
     """
     A subclass of TimeSeries that stores ordered time series values in
     a numpy array
