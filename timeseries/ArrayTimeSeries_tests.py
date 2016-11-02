@@ -18,6 +18,41 @@ class TestArrayTimeSeries(unittest.TestCase):
         self.assertTrue((ArrayTimeSeries((0, 1, 2, 4), (1,42,3,10))._value ==
                          np.array([1,42,3,10])).all())
         
+    # Faulty arguments
+    # Times and Values have different lengths
+    def test_invalid_array_lengths(self):
+        with self.assertRaises(ValueError):
+            x = ArrayTimeSeries([1, 2, 3], [4, 5])
+            
+    # Values non numeric
+    def test_non_numeric_values(self):
+        with self.assertRaises(TypeError):
+            x = ArrayTimeSeries([1, 2, 3], ['hello', 'world', '!'])
+        
+    # Times non numeric
+    def test_non_numeric_times(self):
+        with self.assertRaises(TypeError):
+            x = ArrayTimeSeries(['hello', 'world', '!'], [1, 2, 3])
+
+    # Both times and values non numeric
+    def test_non_numeric_data(self):
+        with self.assertRaises(TypeError):
+            x = ArrayTimeSeries(['hello'], ['world'])
+            
+    # Duplicate times present
+    def test_non_distinct_times(self):
+        with self.assertRaises(ValueError):
+            x = ArrayTimeSeries([1.1, 1.1, 1.2], [3, 4, 5])       
+        
+    # Input data not of type sequence
+    def test_non_sequence_data1(self):
+        with self.assertRaises(TypeError):
+            x = ArrayTimeSeries([3], 4)
+            
+    def test_non_sequence_data2(self):
+        with self.assertRaises(TypeError):
+            x = ArrayTimeSeries(53, (4))
+        
     # number of arguments
     def test_omitted_arg(self):
         with self.assertRaises(TypeError):
@@ -260,14 +295,6 @@ class TestArrayTimeSeries(unittest.TestCase):
     def test_items_nonempty(self):
         ts = ArrayTimeSeries([1,2,3,4,5],[2,4,6,8,10])
         self.assertEqual([(1,2),(2,4),(3,6),(4,8),(5,10)],ts.items())
-
-    def test_items_string(self):
-        ts = ArrayTimeSeries(range(3),'abc')
-        self.assertEqual([(0,'a'), (1,'b'), (2,'c')],ts.items())
-
-    def test_items_output_type(self):
-        ts = ArrayTimeSeries(range(3),'abc')
-        self.assertEqual(type(ts.items()), list)
         
     # interpolate
     # Test interpolation method with empty input

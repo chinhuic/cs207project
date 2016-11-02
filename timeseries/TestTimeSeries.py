@@ -18,6 +18,41 @@ class TestTimeSeries(unittest.TestCase):
         self.assertEqual(TimeSeries(range(0,4), (1,42,3,10))._value, [1,42,3,10])
         self.assertEqual(TimeSeries(range(0,4), (1,42,3,10))._time, [0,1,2,3])
         
+    # Faulty arguments
+    # Times and Values have different lengths
+    def test_invalid_array_lengths(self):
+        with self.assertRaises(ValueError):
+            x = TimeSeries([1, 2, 3], [4, 5])
+            
+    # Values non numeric
+    def test_non_numeric_values(self):
+        with self.assertRaises(TypeError):
+            x = TimeSeries([1, 2, 3], ['hello', 'world', '!'])
+        
+    # Times non numeric
+    def test_non_numeric_times(self):
+        with self.assertRaises(TypeError):
+            x = TimeSeries(['hello', 'world', '!'], [1, 2, 3])
+
+    # Both times and values non numeric
+    def test_non_numeric_data(self):
+        with self.assertRaises(TypeError):
+            x = TimeSeries(['hello'], ['world'])
+            
+    # Duplicate times present
+    def test_non_distinct_times(self):
+        with self.assertRaises(ValueError):
+            x = TimeSeries([1.1, 1.1, 1.2], [3, 4, 5])       
+        
+    # Input data not of type sequence
+    def test_non_sequence_data1(self):
+        with self.assertRaises(TypeError):
+            x = TimeSeries([3], 4)
+            
+    def test_non_sequence_data2(self):
+        with self.assertRaises(TypeError):
+            x = TimeSeries(53, (4))
+        
     # number of arguments
     def test_omitted_arg(self):
         with self.assertRaises(TypeError):
@@ -82,10 +117,6 @@ class TestTimeSeries(unittest.TestCase):
     def test_contains_checks_only_values_not_times(self):
         x = TimeSeries([1,2,3,4,5,6], [2,4,6,8,10,12])
         self.assertFalse(1 in x)
-
-    def test_contains_string(self):
-        x = TimeSeries(range(5),'abcde')
-        self.assertTrue('d' in x)
         
  
     # __iter__ 
@@ -131,34 +162,8 @@ class TestTimeSeries(unittest.TestCase):
         # Check results
         self.assertEqual(ts._value, iter_list)
         
-    def test_iter_integer_spaced_7(self):
-        ts = TimeSeries(range(715, 7), range(-14, 701, 7))
         
-        iter_list = []
-        for val in ts:
-            iter_list.append(val)
-            
-        # Check type
-        self.assertTrue(all(isinstance(n, int) for n in iter_list))
-        
-        # Check results
-        self.assertEqual(ts._value, iter_list)
-        
-    # Test iterating over a TS with values of type string
-    # Check both the types of results and answers expected
-    def test_iter_string_values(self):
-        ts = TimeSeries(range(4), ['1', '2', '5', '15'])
-        
-        iter_list = []
-        for val in ts:
-            iter_list.append(val)
-            
-        # Check type
-        self.assertTrue(all(isinstance(n, str) for n in iter_list))
-        
-        # Check results
-        self.assertEqual(ts._value, iter_list)
-        
+
     # Test iterating over a TS with values of type float
     # Check both the types of results and answers expected
     def test_iter_float_values(self):
@@ -174,40 +179,7 @@ class TestTimeSeries(unittest.TestCase):
         # Check results
         self.assertEqual(ts._value, iter_list)
         
-    # Test iterating over a TS with values of type bool
-    # Check both the types of results and answers expected
-    def test_iter_bool_values(self):
-        ts = TimeSeries(range(5), [True, False, False, True, True])
-        
-        iter_list = []
-        for val in ts:
-            iter_list.append(val)
-        
-        # Check type
-        self.assertTrue(all(isinstance(n, bool) for n in iter_list))
-        
-        # Check results    
-        self.assertEqual(ts._value, iter_list)
-        
-    # Test iterating over a TS with values of different types
-    def test_iter_heterogeneous_values(self):
-        ts = TimeSeries(range(5), [True, 3, 'hello', 0.07, ('cs', 207)])
-        
-        iter_list = []
-        for val in ts:
-            iter_list.append(val)
-            
-        self.assertEqual(ts._value, iter_list)
-        
-    # Test iterating over TS with different sequence types for input
-    def test_iter_string_input(self):
-        ts = TimeSeries(range(14), '123456789abcde')
-        
-        iter_list = []
-        for val in ts:
-            iter_list.append(val)
-            
-        self.assertEqual(ts._value, iter_list)
+ 
     
     def test_iter_tuple_input(self):
         ts = TimeSeries(range(5), (0, 3.1, 5.2, 100, 9.77))
@@ -235,10 +207,6 @@ class TestTimeSeries(unittest.TestCase):
         x = np.array([])
         self.assertEqual(type(ts.values()),type(x))
 
-    def test_values_string(self):
-        ts = TimeSeries(range(5),'abcde')
-        x = np.array(['a','b','c','d','e'])
-        self.assertTrue(np.array_equal(ts.values(),x))
 
 
     # itervalues
@@ -254,18 +222,6 @@ class TestTimeSeries(unittest.TestCase):
         with self.assertRaises(StopIteration):
             next(ts_simple_itervalues)
 
-    def test_itervalues_string(self):
-        ts = TimeSeries(range(5),'abcde')
-
-        iter_list = []
-        for val in ts.itervalues():
-            iter_list.append(val)
-
-        # check type
-        self.assertTrue(all(isinstance(n, str) for n in iter_list))
-        
-        # Check results
-        self.assertEqual(iter_list, ['a','b','c','d','e'])
 
 
     # times
@@ -340,13 +296,6 @@ class TestTimeSeries(unittest.TestCase):
         ts = TimeSeries([1,2,3,4,5],[2,4,6,8,10])
         self.assertEqual([(1,2),(2,4),(3,6),(4,8),(5,10)],ts.items())
 
-    def test_items_string(self):
-        ts = TimeSeries(range(3),'abc')
-        self.assertEqual([(0,'a'), (1,'b'), (2,'c')],ts.items())
-
-    def test_items_output_type(self):
-        ts = TimeSeries(range(3),'abc')
-        self.assertEqual(type(ts.items()), list)
 
     # iteritems
     # Test iteritems method over TS with empty values
@@ -505,25 +454,16 @@ class TestTimeSeries(unittest.TestCase):
         self.assertEqual(ans._time,real_ans._time)
         self.assertEqual(ans._value,real_ans._value)
 
-    def test_add_valid_string(self):
-        ts = TimeSeries(range(5),'abcde')
-        ts2 = TimeSeries(range(5),'qqqqq')
-
-        ans = ts+ts2
-        real_ans = TimeSeries(range(5),['aq','bq','cq','dq','eq'])
-
-        self.assertEqual(ans._time,real_ans._time)
-        self.assertEqual(ans._value,real_ans._value)
 
     def test_add_unequal_times(self):
         ts = TimeSeries(range(5),[1,2,3,4,5])
-        ts2 = TimeSeries(range(0,6),[1,1,1,1,1])
+        ts2 = TimeSeries(range(1,6),[1,1,1,1,1])
         with self.assertRaises(ValueError):
             result = ts+ts2
 
     def test_add_unequal_lengths(self):
         ts = TimeSeries(range(5),[1,2,3,4,5])
-        ts2 = TimeSeries(range(5),[1,1,1,1,1,2,3,4])
+        ts2 = TimeSeries(range(8),[1,1,1,1,1,2,3,4])
         with self.assertRaises(ValueError):
             result = ts+ts2
 
@@ -566,21 +506,15 @@ class TestTimeSeries(unittest.TestCase):
         self.assertEqual(ans._time,real_ans._time)
         self.assertEqual(ans._value,real_ans._value)
 
-    def test_sub_str(self):
-        ts = TimeSeries(range(3),'abc')
-        ts2 = TimeSeries(range(3),'def')
-        with self.assertRaises(TypeError):
-            result = ts-ts2
-
     def test_sub_unequal_times(self):
         ts = TimeSeries(range(5),[1,2,3,4,5])
-        ts2 = TimeSeries(range(0,6),[1,1,1,1,1])
+        ts2 = TimeSeries(range(1,6),[1,1,1,1,1])
         with self.assertRaises(ValueError):
             result = ts-ts2
 
     def test_sub_unequal_lengths(self):
         ts = TimeSeries(range(5),[1,2,3,4,5])
-        ts2 = TimeSeries(range(5),[1,1,1,1,1,2,3,4])
+        ts2 = TimeSeries(range(8),[1,1,1,1,1,2,3,4])
         with self.assertRaises(ValueError):
             result = ts-ts2
 
@@ -628,13 +562,13 @@ class TestTimeSeries(unittest.TestCase):
 
     def test_eq_unequal_times(self):
         ts = TimeSeries(range(5),[1,2,3,4,5])
-        ts2 = TimeSeries(range(0,6),[1,1,1,1,1])
+        ts2 = TimeSeries(range(1,6),[1,1,1,1,1])
         with self.assertRaises(ValueError):
             ts == ts2
 
     def test_eq_unequal_lengths(self):
         ts = TimeSeries(range(5),[1,2,3,4,5])
-        ts2 = TimeSeries(range(5),[1,1,1,1,1,2,3,4])
+        ts2 = TimeSeries(range(8),[1,1,1,1,1,2,3,4])
         with self.assertRaises(ValueError):
             ts == ts2
 
@@ -651,13 +585,13 @@ class TestTimeSeries(unittest.TestCase):
 
     def test_mul_unequal_times(self):
         ts = TimeSeries(range(5),[1,2,3,4,5])
-        ts2 = TimeSeries(range(0,6),[1,1,1,1,1])
+        ts2 = TimeSeries(range(1,6),[1,1,1,1,1])
         with self.assertRaises(ValueError):
             ts * ts2
 
     def test_mul_unequal_lengths(self):
         ts = TimeSeries(range(5),[1,2,3,4,5])
-        ts2 = TimeSeries(range(5),[1,1,1,1,1,2,3,4])
+        ts2 = TimeSeries(range(8),[1,1,1,1,1,2,3,4])
         with self.assertRaises(ValueError):
             ts * ts2
 
@@ -739,7 +673,7 @@ class TestTimeSeries(unittest.TestCase):
 
     # __abs__
     def test_abs_int_result(self):
-        ts = TimeSeries(range(3),[1,1,1,1])
+        ts = TimeSeries(range(4),[1,1,1,1])
         self.assertEqual(abs(ts),2)
 
     def test_abs_nonint_result(self):
@@ -748,7 +682,7 @@ class TestTimeSeries(unittest.TestCase):
 
     # __bool__
     def test_bool_true(self):
-        ts = TimeSeries(range(3),[1,1,1,1])
+        ts = TimeSeries(range(4),[1,1,1,1])
         self.assertTrue(abs(ts))
 
     def test_bool_false(self):

@@ -3,6 +3,7 @@ from TimeSeries import TimeSeries
 from lazy import LazyOperation, lazy_add, lazy_mul, lazy
 import math
 import numpy as np
+import numbers
 
 class ArrayTimeSeries(TimeSeries):
     """
@@ -11,9 +12,9 @@ class ArrayTimeSeries(TimeSeries):
     
     Parameters
     ----------
-    times : sequence
+    times : sequence (numerical)
         A sequence containing the ordered time points
-    values : sequence
+    values : sequence (numerical)
         A sequence containing the values corresponding to the time data. 
         
     Notes
@@ -21,6 +22,8 @@ class ArrayTimeSeries(TimeSeries):
     PRE:
       - `times` must be in sorted (monotonically increasing) order
       - `times` and `values` must be of the same length
+      - `times` and `values` data must be numeric
+      - `times` and `values` must be sequence-like objects
       - data in `values` are ordered with their corresponding time, i.e.
         1st element in `values` corresponds to 1st time point, 2nd element
         in `values` corresponds to 2nd time point, etc.
@@ -30,17 +33,34 @@ class ArrayTimeSeries(TimeSeries):
           
     Examples
     --------
-    >>> at1 = ArrayTimeSeries([0, 1, 2], [1, 2, 3])
-    >>> len(at1)
+    >>> at = ArrayTimeSeries([0, 1, 2], [1, 2, 3])
+    >>> len(at)
     3
-    
-    >>> at2 = ArrayTimeSeries((0, 2, 4, 7, 10), [4, 1, 10, 2, 100])
-    >>> len(at2)
-    5
-    
+    >>> at[1]
+    2
+    >>> at[2] = 4
+    >>> at[2]
+    4
     """
     
     def __init__(self, times, values):
+        """
+        Constructor for ArrayTimeSeries subclass. Initializes ArrayTimeSeries with 
+        time values given in `times` and corresponding values given in `values`
+        
+        Checks that:
+          - `times` and `values` are of equal length
+          - times in `times` are all distinct
+          - data in `times` and `values` are numeric
+          - `times` and `values` are sequences
+          
+        Parameters
+        ----------
+        times : sequence (numerical)
+            A sequence containing the ordered time points
+        values : sequence (numerical)
+            A sequence containing the values corresponding to the time data. 
+        """
         # Check length
         if len(times) != len(values):
             raise ValueError('Input times and values must have the same length')
@@ -49,6 +69,20 @@ class ArrayTimeSeries(TimeSeries):
         # (we don't check sortedness due to time complexity)
         if len(times) != len(set(times)):
             raise ValueError('Input times and values must have the same length')
+            
+        # Check if input data is numeric
+        if not all(isinstance(x, numbers.Number) for x in values):
+            raise TypeError('Data must be numerical!')
+            
+        if not all(isinstance(t, numbers.Number) for t in times):
+            raise TypeError('Time values must be numerical!')
+            
+        # Check if input data is sequence-like
+        try:
+            iter(values)
+            iter(times)
+        except:
+            raise TypeError('Data must be a sequence!')
         
         self._length = len([x for x in values])
         self._value = np.array([x for x in values])

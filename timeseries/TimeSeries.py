@@ -13,33 +13,84 @@ class TimeSeries:
     
     Parameters
     ----------
-    times : sequence
+    times : sequence (numerical)
         A sequence containing the ordered time points
-    values : sequence
+    values : sequence (numerical)
         A sequence containing the values corresponding to the time data. 
         
     Notes
     -----
-    PRE: 
-      - timeseries data MUST be in sorted time order
-      - both sequences of times and values must be of the same length
-      
+    PRE:
+      - `times` must be in sorted (monotonically increasing) order
+      - `times` and `values` must be of the same length
+      - `times` and `values` data must be numeric
+      - `times` and `values` must be sequence-like objects
+      - data in `values` are ordered with their corresponding time, i.e.
+        1st element in `values` corresponds to 1st time point, 2nd element
+        in `values` corresponds to 2nd time point, etc.
+        
+    WARNINGS:
+      - if `times` is not sorted then indexing will be unreliable
+          
     Examples
     --------
-    >>> t1 = TimeSeries([1, 2, 3], [5, 10, 6])
-
+    >>> t = TimeSeries([0, 1, 2], [1, 2, 3])
+    >>> len(t)
+    3
+    >>> t[1]
+    2
+    >>> t[2]
+    3
     """
-    
-    #constructor for TimeSeries
-    #attributes are 
-    #  times: contains the ordered time points of the time series
-    #  value: contains the time series ordered data
+
     def __init__(self, times, values):
+        """
+        Constructor for TimeSeries class. Initializes TimeSeries with 
+        time values given in `times` and corresponding values given in `values`
+        
+        Checks that:
+          - `times` and `values` are of equal length
+          - times in `times` are all distinct
+          - data in `times` and `values` are numeric
+          - `times` and `values` are sequences
+          
+        Parameters
+        ----------
+        times : sequence (numerical)
+            A sequence containing the ordered time points
+        values : sequence (numerical)
+            A sequence containing the values corresponding to the time data. 
+        """
+        # Check length
+        if len(times) != len(values):
+            raise ValueError('Input times and values must have the same length')
+            
+        # Check that all times are distinct 
+        # (we don't check sortedness due to time complexity)
+        if len(times) != len(set(times)):
+            raise ValueError('Input times and values must have the same length')
+            
+        # Check if input data is numeric
+        if not all(isinstance(x, numbers.Number) for x in values):
+            raise TypeError('Data must be numerical!')
+            
+        if not all(isinstance(t, numbers.Number) for t in times):
+            raise TypeError('Time values must be numerical!')
+            
+        # Check if input data is sequence-like
+        try:
+            iter(values)
+            iter(times)
+        except:
+            raise TypeError('Data must be a sequence!')
+            
         if type(times) == type(np.array([])) or type(values) == type(np.array([])):
             raise NotImplementedError
         else:
             self._time = [t for t in times]
             self._value = [x for x in values]
+        
+        
         
     # Method len(ts), returns length of timeseries
     def __len__(self):
@@ -78,7 +129,13 @@ class TimeSeries:
         return s
     
     def __str__(self):
-        # Ernest: Reimplemented a more general form to work with class inheritance        
+        """
+        Method to print a representation of the TimeSeries in a concise manner.
+        
+        Prints the length of the time series and the corresponding values if the
+        time series has 10 or fewer items. If the time series has more than 10 items,
+        then we print the length of the time series and the first ten items.
+        """     
         class_name = type(self).__name__
         s = 'The ' + class_name + ' of length ' + str(len(self._value)) + ' is ['
         
@@ -208,8 +265,6 @@ class TimeSeries:
         times: sequence
            A sequence of new time points 
         
-        
-        PRECONDITION: 
         
         Returns
         ----------
