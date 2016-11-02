@@ -4,9 +4,9 @@ from lazy import LazyOperation, lazy_add, lazy_mul, lazy
 import math
 import numpy as np
 import numbers
-from SizedContainerTimeSeriesInterface import SizedContainerTimeSeriesInterface
+from TimeSeries import TimeSeries
 
-class ArrayTimeSeries(SizedContainerTimeSeriesInterface):
+class ArrayTimeSeries(TimeSeries):
     """
     A subclass of TimeSeries that stores ordered time series values in
     a numpy array
