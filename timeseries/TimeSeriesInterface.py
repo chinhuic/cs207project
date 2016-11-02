@@ -2,7 +2,8 @@ import abc
 
 class TimeSeriesInterface(abc.ABC):
     """
-    
+    An ABC (abstract base class) or interface that defines the common methods that may
+    be used in both  sized-container based time series as well as stream based and simulated time series.
     """
 
     def __iter__(self):
