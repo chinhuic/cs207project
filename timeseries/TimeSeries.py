@@ -308,7 +308,7 @@ class TimeSeries:
                 self._check_length_helper(rhs)
                 self._check_timedomains_helper(rhs)
                 newvals = [i+j for i,j in zip(self._value,rhs._value)]
-            return TimeSeries(self._time,newvals)
+            return self.__class__(self._time,newvals)
         except TypeError:
             return NotImplemented
 
@@ -326,14 +326,14 @@ class TimeSeries:
                 self._check_length_helper(rhs)
                 self._check_timedomains_helper(rhs)
                 newvals = [i-j for i,j in zip(self._value,rhs._value)]
-            return TimeSeries(self._time,newvals)
+            return self.__class__(self._time,newvals)
         except TypeError:
             return NotImplemented
     
     def __rsub__(self,other):
         if isinstance(other,numbers.Real):
             newvals = [other-i for i in self._value]
-            return TimeSeries(self._time,newvals)
+            return self.__class__(self._time,newvals)
         else:
             return self-other
 
@@ -343,7 +343,7 @@ class TimeSeries:
         try:
             self._check_length_helper(rhs)
             self._check_timedomains_helper(rhs)
-            #return all(i==j for i,j in zip(self.value,rhs.value))
+            #return all(i==j for i,j in zip(self._value,rhs._value))
             truths = [i==j for i,j in zip(self._value,rhs._value)]
             return np.array(truths)
 
@@ -361,7 +361,7 @@ class TimeSeries:
                 self._check_length_helper(rhs)
                 self._check_timedomains_helper(rhs)
                 newvals = [i*j for i,j in zip(self._value,rhs._value)]
-            return TimeSeries(self._time,newvals)
+            return self.__class__(self._time,newvals)
 
         except TypeError:
             return NotImplemented
@@ -372,10 +372,10 @@ class TimeSeries:
     #signs
     def __neg__(self):
         newvals = [-i for i in self._value]
-        return TimeSeries(self._time,newvals)
+        return self.__class__(self._time,newvals)
 
     def __pos__(self):
-        return TimeSeries(self._time,self._value)
+        return self.__class__(self._time,self._value)
 
     # square root of the sum of the squares of values
     def __abs__(self):

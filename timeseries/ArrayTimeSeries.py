@@ -1,5 +1,7 @@
 
 from TimeSeries import TimeSeries
+from lazy import LazyOperation, lazy_add, lazy_mul, lazy
+import math
 import numpy as np
 
 class ArrayTimeSeries(TimeSeries):
