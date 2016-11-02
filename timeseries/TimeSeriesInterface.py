@@ -7,21 +7,21 @@ class TimeSeriesInterface(abc.ABC):
     """
 
     def __iter__(self):
-        for val in self.value:
+        for val in self._value:
             yield val
 
 
     def itervalues(self):
-        for value in self.value:
+        for value in self._value:
             yield value
 
     def itertimes(self):
-        for time in self.time:
+        for time in self._time:
             yield time
 
 
     def iteritems(self):
-        for item in zip(self.time, self.value):
+        for item in zip(self._time, self._value):
             yield item
 
 

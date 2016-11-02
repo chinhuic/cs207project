@@ -7,23 +7,30 @@ import math
 
 class SizedContainerTimeSeriesInterface(TimeSeriesInterface, abc.ABC):
     """
-       An ABC (abstract base class) or interface that inherits from the TimeSeriesInterface ABC.
-       This has the methods which pertain to the "containerness" of the timeseries: the notions of
-       indexing, length, and returning arrays in addition to iterators
+       An ABC (abstract base class) or interface that inherits from the TimeSeriesInterface 
+       ABC.
+       This has the methods which pertain to the "containerness" of the timeseries: the 
+       notions of indexing, length, and returning arrays in addition to iterators
     """
 
     # Method to return the length of  the timeseries
-
     @abc.abstractmethod
     def __len__(self):
         """
-        Returns the length of the timeseries. Implemented differently in both the classes.
+        Returns the length of the timeseries. Implemented slightly differently in 
+        TimeSeries and ArrayTimeSeries classes.
         """
-       
-    
+        
+    @abc.abstractmethod
+    def interpolate(self, times):
+        """
+        A method that takes in a sequence of new time points and computes corresponding 
+        values by linear interpolation of existing values. Implemented slightly 
+        differently in TimeSeries and ArrayTimeSeries classes
+        """
+        
     # Method that should return item value given the index
-    # use as ts[index]
-    
+    # use as ts[index]    
     def __getitem__(self, index):
         return self._value[index]
     
@@ -34,20 +41,19 @@ class SizedContainerTimeSeriesInterface(TimeSeriesInterface, abc.ABC):
     
     # Method that should return True when the value is in the timeseries values
     def __contains__(self, value):
-        return value in self.value
+        return value in self._value
     
     # Method that returns the numpy array of values
     def values(self):
-        return np.array(self.value)
+        return np.array(self._value)
 
     # Method that returns the numpy array of times
     def times(self):
-        return np.array(self.time)
+        return np.array(self._time)
 
     # Method that returns the list of time-value tuple pairs
     def items(self):
-        return [(t, v) for t, v in zip(self.time, self.value)]
-
+        return [(t, v) for t, v in zip(self._time, self._value)]
 
     def __repr__(self):
         class_name = type(self).__name__
@@ -180,10 +186,10 @@ class SizedContainerTimeSeriesInterface(TimeSeriesInterface, abc.ABC):
     #signs
     def __neg__(self):
         newvals = [-i for i in self._value]
-        return self.__class__(self._time,newvals)
+        return self.__class__(self._time, newvals)
 
     def __pos__(self):
-        return self.__class__(self._time,self._value)
+        return self.__class__(self._time, self._value)
 
     # square root of the sum of the squares of values
     def __abs__(self):
