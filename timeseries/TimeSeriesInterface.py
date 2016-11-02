@@ -26,4 +26,3 @@ class TimeSeriesInterface(abc.ABC):
 
 
             
-'
