@@ -1,3 +1,4 @@
+
 from pytest import raises
 import numpy as np
 import unittest
@@ -9,11 +10,11 @@ class TestArrayTimeSeries(unittest.TestCase):
     # __init__
     # types of sequences
     def test_arg_type_range(self):
-        self.assertTrue((ArrayTimeSeries(range(0,3), range(0,3)).value ==
+        self.assertTrue((ArrayTimeSeries(range(0,3), range(0,3))._value ==
                          np.array([0, 1, 2])).all())
 
     def test_arg_type_tuple(self):
-        self.assertTrue((ArrayTimeSeries((0, 1, 2, 4), (1,42,3,10)).value ==
+        self.assertTrue((ArrayTimeSeries((0, 1, 2, 4), (1,42,3,10))._value ==
                          np.array([1,42,3,10])).all())
         
     # number of arguments
@@ -37,16 +38,16 @@ class TestArrayTimeSeries(unittest.TestCase):
             
     # simple arguments
     def test_no_data_value(self):
-        self.assertTrue((ArrayTimeSeries([], []).value == np.array([])).all())
-        self.assertTrue((ArrayTimeSeries([], []).time == np.array([])).all())
+        self.assertTrue((ArrayTimeSeries([], [])._value == np.array([])).all())
+        self.assertTrue((ArrayTimeSeries([], [])._time == np.array([])).all())
 
     def test_one_data_value(self):
-        self.assertTrue((ArrayTimeSeries([0], [1]).value == np.array([1])).all())
-        self.assertTrue((ArrayTimeSeries([0], [1]).time == np.array([0])).all())
+        self.assertTrue((ArrayTimeSeries([0], [1])._value == np.array([1])).all())
+        self.assertTrue((ArrayTimeSeries([0], [1])._time == np.array([0])).all())
 
     def test_multiple_data_values(self):
-        self.assertTrue((ArrayTimeSeries([0,1,2], [1,2,3]).value == np.array([1,2,3])).all())
-        self.assertTrue((ArrayTimeSeries([0,1,2], [1,2,3]).time == np.array([0,1,2])).all())
+        self.assertTrue((ArrayTimeSeries([0,1,2], [1,2,3])._value == np.array([1,2,3])).all())
+        self.assertTrue((ArrayTimeSeries([0,1,2], [1,2,3])._time == np.array([0,1,2])).all())
 
 
     # __len__
@@ -74,8 +75,8 @@ class TestArrayTimeSeries(unittest.TestCase):
     def test_setitem(self):
         x = ArrayTimeSeries(range(6), [2,4,6,8,10,12])
         x[2] = 7
-        self.assertTrue((x.value == np.array([2,4,7,8,10,12])).all())
-        self.assertTrue((x.time == np.array(range(6))).all())
+        self.assertTrue((x._value == np.array([2,4,7,8,10,12])).all())
+        self.assertTrue((x._time == np.array(range(6))).all())
         
     # __iter__ 
     # Test iterating over ATS (ArrayTimeSeries) with empty values
@@ -88,7 +89,7 @@ class TestArrayTimeSeries(unittest.TestCase):
     def test_iter_simple(self):
         ats_simple = ArrayTimeSeries([0], [1])
         ats_simple_iter = iter(ats_simple)
-        self.assertEqual(ats_simple.value[0], next(ats_simple_iter))
+        self.assertEqual(ats_simple._value[0], next(ats_simple_iter))
         with self.assertRaises(StopIteration): 
             next(ats_simple_iter)
             
@@ -105,7 +106,7 @@ class TestArrayTimeSeries(unittest.TestCase):
         self.assertTrue(all(isinstance(n, np.integer) for n in iter_list))
         
         # Check results
-        self.assertTrue((iter_list == ats.value).all())
+        self.assertTrue((iter_list == ats._value).all())
         
     def test_iter_integer_spaced_3(self):
         ats = ArrayTimeSeries(range(-5, 17, 3), range(-5, 17, 3))
@@ -118,7 +119,7 @@ class TestArrayTimeSeries(unittest.TestCase):
         self.assertTrue(all(isinstance(n, np.integer) for n in iter_list))
         
         # Check results
-        self.assertTrue((iter_list == ats.value).all())
+        self.assertTrue((iter_list == ats._value).all())
         
     def test_iter_integer_spaced_7(self):
         ats = ArrayTimeSeries(range(-14, 701, 7), range(-14, 701, 7))
@@ -131,7 +132,7 @@ class TestArrayTimeSeries(unittest.TestCase):
         self.assertTrue(all(isinstance(n, np.integer) for n in iter_list))
         
         # Check results
-        self.assertTrue((iter_list == ats.value).all())
+        self.assertTrue((iter_list == ats._value).all())
         
     # Test iterating over a ATS with values of type float
     # Check both the types of results and answers expected
@@ -146,7 +147,7 @@ class TestArrayTimeSeries(unittest.TestCase):
         self.assertTrue(all(isinstance(n, np.float) for n in iter_list))
         
         # Check results
-        self.assertTrue((iter_list == ats.value).all())
+        self.assertTrue((iter_list == ats._value).all())
         
     # itertimes
     # Test itertimes method over ATS with empty values
@@ -211,79 +212,79 @@ class TestArrayTimeSeries(unittest.TestCase):
         a = ArrayTimeSeries([0, 5, 10], [1, 2, 3])
         b = a.interpolate([])
         
-        self.assertTrue(np.array_equal(b.value, np.array([])))
-        self.assertTrue(np.array_equal(b.time, np.array([])))
+        self.assertTrue(np.array_equal(b._value, np.array([])))
+        self.assertTrue(np.array_equal(b._time, np.array([])))
         self.assertTrue(isinstance(b, ArrayTimeSeries))
         
     # Test interpolation method with single new time that is already in TS
     def test_interpolate_in_array_single(self):
         a = ArrayTimeSeries([0, 5, 10], [1, 2, 3])
         b = a.interpolate([5])
-        self.assertTrue(np.array_equal(b.value, np.array([2])))
-        self.assertTrue(np.array_equal(b.time, np.array([5])))
+        self.assertTrue(np.array_equal(b._value, np.array([2])))
+        self.assertTrue(np.array_equal(b._time, np.array([5])))
         self.assertTrue(isinstance(b, ArrayTimeSeries))
         
     # Test interpolation method with multiple new times that are already in TS
     def test_interpolate_in_array_multiple(self):
         a = ArrayTimeSeries([0, 5, 10], [1, 2, 3])
         b = a.interpolate([0, 5, 10])
-        self.assertTrue(np.array_equal(b.value, np.array([1, 2, 3])))
-        self.assertTrue(np.array_equal(b.time, np.array([0, 5, 10])))
+        self.assertTrue(np.array_equal(b._value, np.array([1, 2, 3])))
+        self.assertTrue(np.array_equal(b._time, np.array([0, 5, 10])))
         self.assertTrue(isinstance(b, ArrayTimeSeries))
     
     # Test interpolation for stationary boundary conditions
     def test_interpolate_stationary_min(self):
         a = ArrayTimeSeries([0, 5, 10], [1, 2, 3])
         b = a.interpolate([-0.1])
-        self.assertTrue(np.array_equal(b.value, np.array([1])))
-        self.assertTrue(np.array_equal(b.time, np.array([-0.1])))
+        self.assertTrue(np.array_equal(b._value, np.array([1])))
+        self.assertTrue(np.array_equal(b._time, np.array([-0.1])))
         self.assertTrue(isinstance(b, ArrayTimeSeries))
         
     def test_interpolate_stationary_max(self):
         a = ArrayTimeSeries([0, 5, 10], [1, 2, 3])
         b = a.interpolate([15])
-        self.assertTrue(np.array_equal(b.value, np.array([3])))
-        self.assertTrue(np.array_equal(b.time, np.array([15])))
+        self.assertTrue(np.array_equal(b._value, np.array([3])))
+        self.assertTrue(np.array_equal(b._time, np.array([15])))
         self.assertTrue(isinstance(b, ArrayTimeSeries))
         
     def test_interpolate_stationary_min_max(self):
         a = ArrayTimeSeries([0, 5, 10], [1, 2, 3])
         b = a.interpolate([-5, 42])
-        self.assertTrue(np.array_equal(b.value, np.array([1, 3])))
-        self.assertTrue(np.array_equal(b.time, np.array([-5, 42])))
+        self.assertTrue(np.array_equal(b._value, np.array([1, 3])))
+        self.assertTrue(np.array_equal(b._time, np.array([-5, 42])))
         self.assertTrue(isinstance(b, ArrayTimeSeries))
     
     # Test interpolation method with simple cases provided in Week 3 handout
     def test_interpolate_simple_1(self):
         a = ArrayTimeSeries([0, 5, 10], [1, 2, 3])
         b = a.interpolate([1])
-        self.assertTrue(np.array_equal(b.value, np.array([1.2])))
-        self.assertTrue(np.array_equal(b.time, np.array([1])))
+        self.assertTrue(np.array_equal(b._value, np.array([1.2])))
+        self.assertTrue(np.array_equal(b._time, np.array([1])))
         self.assertTrue(isinstance(b, ArrayTimeSeries))
         
     def test_interpolate_simple_2(self):
         a = ArrayTimeSeries([0, 5, 10], [1, 2, 3])
         b = ArrayTimeSeries([2.5, 7.5], [100, -100])
         c = a.interpolate(b.time)
-        self.assertTrue(np.array_equal(b.value, np.array([1.5, 2.5])))
-        self.assertTrue(np.array_equal(b.time, np.array([2.5, 7.5])))
+        self.assertTrue(np.array_equal(b._value, np.array([1.5, 2.5])))
+        self.assertTrue(np.array_equal(b._time, np.array([2.5, 7.5])))
         self.assertTrue(isinstance(c, ArrayTimeSeries))
         
     # Test interpolation with float values
     def test_interpolate_simple_2(self):
         a = ArrayTimeSeries([0.5, 3.2], [1.96, 3.14])
         b = a.interpolate([0.4, 2.0])
-        self.assertEqual(b.value[0], 1.96)
-        self.assertTrue(b.value[1] < 2.616 and b.value[1] > 2.615) # avoid roundoff ambiguities
-        self.assertTrue(np.array_equal(b.time, np.array([0.4, 2.0])))
+        self.assertEqual(b._value[0], 1.96)
+        self.assertTrue(b._value[1] < 2.616 and b._value[1] > 2.615) # avoid roundoff ambiguities
+        self.assertTrue(np.array_equal(b._time, np.array([0.4, 2.0])))
         self.assertTrue(isinstance(b, ArrayTimeSeries))
         
     # Test interpolation method with mixture of cases above
     def test_interpolate_mixture(self):
         a = ArrayTimeSeries([3, 6, 7, 8, 15, 20], [0, 5, 2, 3, 10, -3])
         b = a.interpolate([0, 1, 6.5, 10, 22, 500])
-        self.assertTrue(np.array_equal(b.value, np.array([0, 0, 3.5, 5, -3, -3])))
-        self.assertTrue(np.array_equal(b.time, np.array([0, 1, 6.5, 10, 22, 500])))
+        self.assertTrue(np.array_equal(b._value, np.array([0, 0, 3.5, 5, -3, -3])))
+        self.assertTrue(np.array_equal(b._time, np.array([0, 1, 6.5, 10, 22, 500])))
         self.assertTrue(isinstance(b, ArrayTimeSeries))
         
     @lazy
@@ -300,9 +301,6 @@ class TestArrayTimeSeries(unittest.TestCase):
                                   ArrayTimeSeries(range(1,5),range(2,6)).lazy)
         self.assertTrue(thunk.eval() == True)
     
-    def test_same_output_normal_v_lazy(self):
-        x = ArrayTimeSeries([1,2,3,4],[1, 9, 4, 16])
-        self.assertEqual(x, x.lazy.eval())
    
         
 if __name__ == '__main__':
