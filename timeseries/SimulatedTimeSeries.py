@@ -1,4 +1,4 @@
- from StreamTimeSeriesInterface import StreamTimeSeriesInterface
+from StreamTimeSeriesInterface import StreamTimeSeriesInterface
 
 class SimulatedTimeSeries(StreamTimeSeriesInterface):
     """
