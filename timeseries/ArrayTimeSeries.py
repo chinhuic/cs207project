@@ -4,6 +4,7 @@ from lazy import LazyOperation, lazy_add, lazy_mul, lazy
 import math
 import numpy as np
 import numbers
+from SizedContainerTimeSeriesInterface import SizedContainerTimeSeriesInterface
 
 class ArrayTimeSeries(TimeSeries):
     """
