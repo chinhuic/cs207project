@@ -1,6 +1,7 @@
+from TimeSeriesInterface import TimeSeriesInterface
 import abc
 
-class StreamTimeSeriesInterface(abc.ABC):
+class StreamTimeSeriesInterface(TimeSeriesInterface, abc.ABC):
 
     """
     An ABC (abstract base class) or interface to handle those timeseries that do not
@@ -10,19 +11,11 @@ class StreamTimeSeriesInterface(abc.ABC):
     @abc.abstractmethod
     def produce(self, chunk = 1):
         """
-        An abstract (generator) method that generates a chunk sized bunch
-        of new elements into the timeseries whenever it is called
-
-        PARAMETER
-        ----------
-        chunk: int
-            the chunk argument must be an integer; default value is 1
-
-        YIELDS
-        -------
-        the chunk-sized list of values.  
+        An method that generates a chunk sized bunch of new elements into the timeseries 
+        whenever it is called
         """
-        #yield random.sample(range(1, 10000000), chunk)
+
+
         
         
 

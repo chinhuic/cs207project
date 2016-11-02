@@ -1,12 +1,11 @@
-
-#from TimeSeries import TimeSeries
+from SizedContainerTimeSeriesInterface import SizedContainerTimeSeriesInterface
 from lazy import LazyOperation, lazy_add, lazy_mul, lazy
 import math
 import numpy as np
 import numbers
 from TimeSeries import TimeSeries
 
-class ArrayTimeSeries(TimeSeries):
+class ArrayTimeSeries(SizedContainerTimeSeriesInterface):
     """
     A subclass of TimeSeries that stores ordered time series values in
     a numpy array
@@ -106,7 +105,8 @@ class ArrayTimeSeries(TimeSeries):
             a monotonically increasing sequence of numeric objects with length at least 2
         val : numeric
             a numeric object that is NOT in `seq`, and must be strictly less than the
-            largest element in `seq` and strictly greater than the smallest element in `seq`
+            largest element in `seq` and strictly greater than the smallest element in
+            `seq`
             
         Returns
         ----------
@@ -121,8 +121,8 @@ class ArrayTimeSeries(TimeSeries):
             -  objects in seq are numeric (and hence comparable)
             - `seq` has length greater than or equal to 2
             - `val` is not an element of `seq`
-            - `val` is strictly less than the largest element of `seq`, and strictly greater
-              than the smallest element of `seq`.
+            - `val` is strictly less than the largest element of `seq`, and strictly
+              greater than the smallest element of `seq`.
         POST: 
             - `seq` is not changed by this function (immutable)
             - returns the index of the smallest element in `seq` that
@@ -163,10 +163,11 @@ class ArrayTimeSeries(TimeSeries):
             instance, then the new value is the value associated with the smallest time.
           - If the new time point is greater than the largest time in the ArrayTimeSeries 
             instance, then the new value is the value associated with the largest time.
-          - If the new time point is equal to any of the time points in the ArrayTimeSeries, then
-            the new value is the value associated with the equal time point.
-          - Else, the new value is linearly interpolated from the two values corresponding to
-            the two nearest time points.
+          - If the new time point is equal to any of the time points in the 
+            ArrayTimeSeries, then the new value is the value associated with the equal time  
+            point.
+          - Else, the new value is linearly interpolated from the two values corresponding 
+            to the two nearest time points.
         
         Parameters
         ----------
@@ -187,11 +188,11 @@ class ArrayTimeSeries(TimeSeries):
         PRE: the ArrayTimeSeries instance has at least 2 data points
         POST: 
             - the ArrayTimeSeries instance is not changed by this function 
-            - returns a new ArrayTimeSeries instance consisting of the new time points and their 
-              interpolated values.
+            - returns a new ArrayTimeSeries instance consisting of the new time points and 
+              their interpolated values.
 
-        WARNINGS: If the ArrayTimeSeries instance has fewer than 2 data points, you may access invalid
-                  sequence indices.
+        WARNINGS: If the ArrayTimeSeries instance has fewer than 2 data points, you may 
+                  access invalid sequence indices.
   
         Examples
         --------

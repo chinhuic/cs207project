@@ -3,27 +3,24 @@ import abc
 class TimeSeriesInterface(abc.ABC):
     """
     An ABC (abstract base class) or interface that defines the common methods that may
-    be used in both  sized-container based time series as well as stream based and simulated time series.
+    be used in both  sized-container based time series as well as stream based and simulated 
+    time series.
     """
-
+    @abc.abstractmethod
     def __iter__(self):
-        for val in self.value:
-            yield val
+        """Method to iterate over values in time series""" 
 
-
+    @abc.abstractmethod
     def itervalues(self):
-        for value in self.value:
-            yield value
-
+        """Returns an interator over values"""
+        
+    @abc.abstractmethod
     def itertimes(self):
-        for time in self.time:
-            yield time
+        """Returns an interator over times"""
 
-
+    @abc.abstractmethod
     def iteritems(self):
-        for item in zip(self.time, self.value):
-            yield item
-
+        """Returns an iterator over time-value pairs"""
 
 
             
