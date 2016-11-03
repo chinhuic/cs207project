@@ -13,32 +13,42 @@ class SizedContainerTimeSeriesInterface(TimeSeriesInterface, abc.ABC):
        notions of indexing, length, and returning arrays in addition to iterators
     """
 
-    # Method to return the length of  the timeseries
+    # Method to return the length of the timeseries
     @abc.abstractmethod
     def __len__(self):
         """
-        Returns the length of the timeseries. Implemented slightly differently in 
-        TimeSeries and ArrayTimeSeries classes.
+        Returns the length of the timeseries. It is an abstract method, and must
+        necessarily be implemented by any class that inherits from SizedContainerTimeSeriesInterface.
+        Implemented slightly differently in the classes TimeSeries and ArrayTimeSeries
         """
-        
+        pass
+
+    # Method that computes corresponding values for a given sequence of time points by linear
+    # interpolation of existing values    
     @abc.abstractmethod
     def interpolate(self, times):
         """
         A method that takes in a sequence of new time points and computes corresponding 
-        values by linear interpolation of existing values. Implemented slightly 
-        differently in TimeSeries and ArrayTimeSeries classes
+        values by linear interpolation of existing values. It is an abstract method, and must
+        necessarily be implemented by any class that inherits from SizedContainerTimeSeriesInterface.
+        Implemented slightly differently in TimeSeries and ArrayTimeSeries classes
         """
-        
+        pass
+
+    # Method to iterate over values 
     def __iter__(self):
         for val in self._value:
             yield val
 
+    # Method that returns an iterator over the values 
     def itervalues(self):
         return iter(self._value)
 
+    # Method that returns an iterator over the times
     def itertimes(self):
         return iter(self._time)
-    
+
+    # Method that returns an iterator over the items
     def iteritems(self):
         return iter(zip(self._time, self._value))
 
@@ -69,6 +79,8 @@ class SizedContainerTimeSeriesInterface(TimeSeriesInterface, abc.ABC):
     def items(self):
         return [(t, v) for t, v in zip(self._time, self._value)]
 
+    # Method that abbreviates string representation and returns it
+    # the goal of __repr__ is to be unambiguous, and is typically intended for developers 
     def __repr__(self):
         class_name = type(self).__name__
         s = class_name + '['
@@ -86,6 +98,8 @@ class SizedContainerTimeSeriesInterface(TimeSeriesInterface, abc.ABC):
         s = s + ']'
         return s
 
+    # Method that returns a representation of a TimeSeries in a concise, unambiguous manner 
+    # the goal of __str__ is to be readable, and is typically intended for users 
     def __str__(self):
         """
         Method to print a representation of the TimeSeries in a concise manner.
@@ -111,21 +125,27 @@ class SizedContainerTimeSeriesInterface(TimeSeriesInterface, abc.ABC):
         s = s + ']'
         return s
 
+    # Method to return a new LazyOperation instance using an identity function
     @property
     def lazy(self):
         def identfn(x):
             return x
         return LazyOperation(identfn, self)
 
+    # Helper method for methods that perform calculations (like __add__, __sub__, for instance),
+    # to check whether the lengths are the same
     def _check_length_helper(self , rhs):
         if not len(self)==len(rhs):
             raise ValueError(str(self)+' and '+str(rhs)+' must have the same length')
 
+    # Helper method for methods that perform calculations (like __add__, __sub__, for instance),
+    # to check whether the time domains of the TimeSeries are the same
     def _check_timedomains_helper(self, rhs):
         if not np.array_equal(self.times(), rhs.times()):
             raise ValueError(str(self)+' and '+str(rhs)+' must have the same time points')
 
-    # addition
+    # Method to perform infix addition after checking the lengths are equal, and time domains are the same
+    # for operations on a TimeSeries   
     def __add__(self,rhs):
         # check lengths are equal and time domains are same
         try:
@@ -140,10 +160,13 @@ class SizedContainerTimeSeriesInterface(TimeSeriesInterface, abc.ABC):
         except TypeError:
             return NotImplemented
 
+        
+    # Method that implements the binary arithmetic operation of addition with reflected (swapped) operands
     def __radd__(self,other):
         return self + other
 
-    # subtraction
+    # Method to perform infix subtraction after checking the lengths are equal, and time domains are the same
+    # for operations on a TimeSeries   
     def __sub__(self,rhs):
         # check lengths are equal and time domains are same
         try:
@@ -157,7 +180,8 @@ class SizedContainerTimeSeriesInterface(TimeSeriesInterface, abc.ABC):
             return self.__class__(self._time,newvals)
         except TypeError:
             return NotImplemented
-    
+
+    # Method that implements the binary arithmetic operation of subtraction with reflected (swapped) operands
     def __rsub__(self,other):
         if isinstance(other,numbers.Real):
             newvals = [other-i for i in self._value]
@@ -165,7 +189,8 @@ class SizedContainerTimeSeriesInterface(TimeSeriesInterface, abc.ABC):
         else:
             return self-other
 
-    # equality
+    # Method to perform infix equality after checking the lengths are equal, and time domains are the same
+    # for operations on a TimeSeries   
     def __eq__(self,rhs):
         # check lengths are equal and time domains are same
         try:
@@ -178,7 +203,8 @@ class SizedContainerTimeSeriesInterface(TimeSeriesInterface, abc.ABC):
         except TypeError:
             return NotImplemented
 
-    # multiplication
+    # Method to perform infix multiplication after checking the lengths are equal, and time domains are the same
+    # for operations on a TimeSeries   
     def __mul__(self,rhs):
         # check lengths are equal and time domains are same
         try:
@@ -194,21 +220,26 @@ class SizedContainerTimeSeriesInterface(TimeSeriesInterface, abc.ABC):
         except TypeError:
             return NotImplemented
 
+    # Method that implements the binary arithmetic operation of multiplication with reflected (swapped) operands
     def __rmul__(self,other):
         return self * other
 
-    #signs
+    # Method that performs negation on a value
+    # signs
     def __neg__(self):
         newvals = [-i for i in self._value]
         return self.__class__(self._time, newvals)
 
+    # Method that returns the value, as positive of a positive value is still positive,
+    # and positive of a negative value is still negative
     def __pos__(self):
         return self.__class__(self._time, self._value)
 
-    # square root of the sum of the squares of values
+    # Method that returns the positive square root of the sum of the squares of values
     def __abs__(self):
         return math.sqrt(sum(x*x for x in self._value))
-
+    
+    # Method that returns 'true' for everything that is not zero, and 'false' for zero
     def __bool__(self): 
         return bool(abs(self))
     
