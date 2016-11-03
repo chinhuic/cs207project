@@ -29,11 +29,11 @@ class SimulatedTimeSeries(StreamTimeSeriesInterface):
         
     def produce(self, chunk = 1):
         """
-        Uses the generator method passed as an argument to the constructor to generate a 
-        sequence with `chunk` number of (time, value) pairs.  
+        Uses the generator method passed as an argument to the constructor (which was then bound
+        to self._gmethod in the constructor) to generate a sequence with `chunk` number of
+        (time, value) pairs.  
 
-        An method that generates a chunk sized bunch of new elements into the timeseries 
-        whenever it is called
+        A method that yields a 'chunk' sized bunch of new elements whenever it is called
        
         PARAMETER
         ----------
@@ -42,7 +42,7 @@ class SimulatedTimeSeries(StreamTimeSeriesInterface):
 
         YIELDS
         -------
-        the chunk-sized list of values.  
+        the chunk-sized list of (time, value) pairs  
         """
         generated_list = []
         
@@ -55,7 +55,7 @@ class SimulatedTimeSeries(StreamTimeSeriesInterface):
 
        
     def __iter__(self):
-        """Method to iterate over values in time series""" 
+        """Method to iterate over values in the time series""" 
         for time, val in self._gmethod:
             yield val
     
