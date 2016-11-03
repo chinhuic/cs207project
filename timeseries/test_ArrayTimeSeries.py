@@ -592,5 +592,46 @@ class TestArrayTimeSeries(unittest.TestCase):
         self.assertFalse(abs(ts))
 
         
-if __name__ == '__main__':
-    unittest.main()
+    # mean
+
+    # test mean of single valued ATS
+    def test_mean_single_val(self):
+        ats = ArrayTimeSeries([4], [42])
+        self.assertEqual(ats.mean(), 42)
+        
+    # test mean for larger ATS
+    def test_mean_larger(self):
+        ats = ArrayTimeSeries(range(20), range(20))
+        self.assertEqual(ats.mean(), 9.5)
+       
+
+    # test mean for some chunk input
+    def test_mean_chunk(self):
+        ats = ArrayTimeSeries(range(20), range(20))
+        self.assertEqual(ats.mean(chunk = 1), 0)
+        self.assertEqual(ats.mean(chunk = 3), 1)
+        self.assertEqual(ats.mean(chunk = 20), 9.5)
+    
+    # std
+    # test std of single valued ATS
+    def test_std_single_val(self):
+        ats = ArrayTimeSeries([4], [42])
+        self.assertEqual(ats.std(), 0)
+        
+    # test std for equal valued ATS
+    def test_std_equal_val(self):
+        ats = ArrayTimeSeries([4, 5, 6, 7, 8], [1, 1, 1, 1, 1])
+        self.assertEqual(ats.std(), 0)
+        
+    # test std for larger ATS
+    def test_std_larger(self):
+        ats = ArrayTimeSeries(range(20), range(20))
+        self.assertEqual(ats.std(), np.std(np.array(range(20))))
+        
+    # test std for some chunk input
+    def test_std_chunk(self):
+        ats = ArrayTimeSeries(range(20), range(20))
+        self.assertEqual(ats.std(chunk = 1), np.std(np.array([0])))
+        self.assertEqual(ats.std(chunk = 3), np.std(np.array([0, 1, 2])))
+        self.assertEqual(ats.std(chunk = 20), np.std(np.array(range(20))))
+
