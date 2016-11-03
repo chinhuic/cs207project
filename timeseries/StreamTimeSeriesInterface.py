@@ -11,8 +11,8 @@ class StreamTimeSeriesInterface(TimeSeriesInterface, abc.ABC):
     @abc.abstractmethod
     def produce(self, chunk = 1):
         """
-        An method that generates a chunk sized bunch of new elements into the timeseries 
-        whenever it is called
+        A method that yields a 'chunk' sized bunch of new elements whenever it is called.
+        MUST be a generator method.
         """
 
 
