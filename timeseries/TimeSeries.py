@@ -255,9 +255,3 @@ class TimeSeries(SizedContainerTimeSeriesInterface):
                 interpolated_vals.append(v_interpolated)
 
         return TimeSeries(times, interpolated_vals)
-
-
-            
-if __name__ == "__main__":
-    import doctest
-    doctest.testmod()
