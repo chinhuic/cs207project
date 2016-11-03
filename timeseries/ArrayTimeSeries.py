@@ -68,7 +68,7 @@ class ArrayTimeSeries(SizedContainerTimeSeriesInterface):
         # Check that all times are distinct 
         # (we don't check sortedness due to time complexity)
         if len(times) != len(set(times)):
-            raise ValueError('Input times and values must have the same length')
+            raise ValueError('Input times must have distinct values!')
             
         # Check if input data is numeric
         if not all(isinstance(x, numbers.Number) for x in values):
