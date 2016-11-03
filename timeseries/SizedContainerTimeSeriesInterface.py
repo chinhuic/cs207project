@@ -242,4 +242,73 @@ class SizedContainerTimeSeriesInterface(TimeSeriesInterface, abc.ABC):
     # Method that returns 'true' for everything that is not zero, and 'false' for zero
     def __bool__(self): 
         return bool(abs(self))
+
+
+
+
+
+    ## NEW STUFF ##
+    ## EVERYTHING ABOVE THIS IS THE SAME AS BEFORE ##
+
+    def mean(self, chunk = None)
+        """
+        Calculates the mean.
+
+        PARAMETERS
+        ------------
+        chunk: int
+           a positive integer that specifies how many values from the beginning
+           of the time series to consider for calcultiong the mean; default value is None.
+           It is an optional argument.
+
+        RETURNS
+        -------
+        the_mean: float
+           a floating point number, which is the mean of the specified values of the timeseries 
+
+        """
+
+        if ( chunk == None ):  
+            val = self.values()
+            the_mean = np.mean(val)
+            
+        else:
+            val = self.values()
+            intermediate = val[:chunk]
+            the_mean = np.mean(intermediate)
+            
+         return the_mean               
+                
+
+
+    def std(self, chunk = None)
+        """
+        Calculates the standard deviation.
+
+        PARAMENTERS
+        ------------
+        chunk: int
+           a positive integer that specifies how many values from the beginning
+           of the time series to consider for calcultiong the mean; default value is None.
+           It is an optional argument.
+
+        RETURNS
+        -------
+        the_std: float
+           a floating point number, which is the standard deviation of the specified values of the timeseries 
+
+        """
+
+        if ( chunk == None ):
+            val = self.values()
+            the_std = np.std(val)
+
+        else:
+            val = self.values()
+            intermediate = val[:chunk]
+            the_std = np.std(intermediate)
+
+        return the_std
+        
     
+
