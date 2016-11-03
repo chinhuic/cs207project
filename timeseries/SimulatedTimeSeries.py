@@ -4,10 +4,19 @@ class SimulatedTimeSeries(StreamTimeSeriesInterface):
     """
     SimulatedTimeSeries class
      
-    Construction:  ts = SimulatedTimeSeries(<any generator function>)
-
-    PRE: argument passed to constructor must be a generator
+    Construction:  ts = SimulatedTimeSeries(gen)
+                     where `gen` is a generator of (time, value) pairs 
     
+    Parameters
+    ----------
+    gen: generator (tuple)
+        generator of (time, value) pairs for the time series
+        
+    Notes
+    -----
+    PRE:
+      - time values in `gen` must be in sorted (monotonically increasing) order
+          
     """
 
     def __init__(self, generator_method):
@@ -44,18 +53,26 @@ class SimulatedTimeSeries(StreamTimeSeriesInterface):
 
         yield generated_list
 
-        
+       
     def __iter__(self):
-        return self
+        """Method to iterate over values in time series""" 
+        for time, val in self._gmethod:
+            yield val
     
     def itertimes(self):
-        yield self.produce(chunk = 1)[0][0]
+        """interator over times"""
+        for time, val in self._gmethod:
+            yield time
     
     def itervalues(self):
-        return self.produce(chunk = 1)[0][1]
+        """iterator over values"""
+        for time, val in self._gmethod:
+            yield val
         
     def iteritems(self):
-        return self.produce(chunk = 1)[0]
+        """iterator over time-value pairs"""
+        for time, val in self._gmethod:
+            yield (time, val)
         
             
          
