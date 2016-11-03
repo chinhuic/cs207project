@@ -1,4 +1,3 @@
-
 from pytest import raises
 import numpy as np
 import math
@@ -702,7 +701,3 @@ class TestTimeSeries(unittest.TestCase):
     def test_numpy_array_time(self):
         with self.assertRaises(NotImplementedError):
             ts = TimeSeries(np.array([1,2,3]),[4,5,6])
-
-
-if __name__ == '__main__':
-    unittest.main()
