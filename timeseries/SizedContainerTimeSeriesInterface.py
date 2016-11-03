@@ -247,10 +247,7 @@ class SizedContainerTimeSeriesInterface(TimeSeriesInterface, abc.ABC):
 
 
 
-    ## NEW STUFF ##
-    ## EVERYTHING ABOVE THIS IS THE SAME AS BEFORE ##
-
-    def mean(self, chunk = None)
+    def mean(self, chunk = None):
         """
         Calculates the mean.
 
@@ -258,9 +255,13 @@ class SizedContainerTimeSeriesInterface(TimeSeriesInterface, abc.ABC):
         ------------
         chunk: int
            a positive integer that specifies how many values from the beginning
-           of the time series to consider for calcultiong the mean; default value is None.
-           It is an optional argument.
+           of the time series to consider for calculting the mean; default value is None.
+           It is an optional argument. If chunk is not specified, then the mean of all
+           the values of the time series is calculated
 
+        PRE: The time series must have at least one value
+        
+        
         RETURNS
         -------
         the_mean: float
@@ -277,11 +278,11 @@ class SizedContainerTimeSeriesInterface(TimeSeriesInterface, abc.ABC):
             intermediate = val[:chunk]
             the_mean = np.mean(intermediate)
             
-         return the_mean               
+        return the_mean               
                 
 
 
-    def std(self, chunk = None)
+    def std(self, chunk = None):
         """
         Calculates the standard deviation.
 
@@ -289,9 +290,12 @@ class SizedContainerTimeSeriesInterface(TimeSeriesInterface, abc.ABC):
         ------------
         chunk: int
            a positive integer that specifies how many values from the beginning
-           of the time series to consider for calcultiong the mean; default value is None.
-           It is an optional argument.
+           of the time series to consider for calculting the standard deviation; default value is None.
+           It is an optional argument. If chunk is not specified, the standard deviation of all the
+           values of the time series is calculated
 
+        PRE: The time series must have at least one value
+        
         RETURNS
         -------
         the_std: float
