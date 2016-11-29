@@ -434,7 +434,6 @@ class BinaryTree(object):
         
         """
         a left rotation at `node_ref`
-
         no color changes here
         """
         print('rotating left')
@@ -502,7 +501,6 @@ class BinaryTree(object):
         balance the tree at the node at `node_ref`
         deal with color changes here
 
-        return the new top level reference
         """
 
         curr_node = self._follow(node_ref)
@@ -590,11 +588,10 @@ class BinaryTree(object):
 
     def update(self, node_ref):
         """
-        should update the whole tree recursively when called with inserted `node_ref`
-        and `curr_node_ref` beginning at the head node
+        balances starting from the newly inserted node at `node_ref` then
+        balances each level above until the whole tree is balanced
 
-        balance at the current node reference given by `curr_node_ref`
-        after the node of `node_ref` has been inserted
+        no direct color changes here, occurs when calls made to balance
         """
 
         # start at inserted node and work way up parents
@@ -1044,9 +1041,11 @@ if __name__ == "__main__":
     db.set(22,'x')
     db.set(20,'x')
     
-    # db.set(23,'x')
+    db.set(23,'x')
 
-    db.get(22)
+    db.get(23)
+    print('\n')
+    db.get(18)
     
     db.commit()
     db.close()
@@ -1054,6 +1053,7 @@ if __name__ == "__main__":
 
     # reopen
     db = connect('scratch.dbdb')
+
     db.close()
     
 
