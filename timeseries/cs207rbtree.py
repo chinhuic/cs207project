@@ -134,6 +134,7 @@ class BinaryNodeRef(ValueRef):
             'key': referent.key,
             'value': referent.value_ref.address,
             'right': referent.right_ref.address,
+            'color': referent.color
         })
 
     @staticmethod
@@ -145,6 +146,7 @@ class BinaryNodeRef(ValueRef):
             d['key'],
             ValueRef(address=d['value']),
             BinaryNodeRef(address=d['right']),
+            d['color']
         )
     
 class BinaryNode(object):
@@ -1035,17 +1037,29 @@ if __name__ == "__main__":
     # db.set(12,'x')
 
     # db.get(11)
-    db.set(3,'x')
-    db.set(7,'x')
-    db.set(18,'x')
-    db.set(22,'x')
-    db.set(20,'x')
+    # db.set(3,'x')
+    # db.set(7,'x')
+    # db.set(18,'x')
+    # db.set(22,'x')
+    # db.set(20,'x')
     
-    db.set(23,'x')
+    # db.set(23,'x')
 
-    db.get(23)
+
+
+
+    db.set(0,'x')
+    db.set(1,'x')
+    db.set(2,'x')
+    db.set(3,'x')
+    db.set(4,'x')
+    db.set(5,'x')
+
+
+
+    db.get(5)
     print('\n')
-    db.get(18)
+    #db.get(18)
     
     db.commit()
     db.close()
@@ -1053,7 +1067,7 @@ if __name__ == "__main__":
 
     # reopen
     db = connect('scratch.dbdb')
-
+    db.get(5)
     db.close()
     
 
