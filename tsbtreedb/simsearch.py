@@ -12,12 +12,11 @@ import random
 from crosscorr import standardize, kernel_dist
 from makelcs import make_lc_files
 from genvpdbs import create_vpdbs
-import unbalancedDB
-import ArrayTimeSeries as ats
+from unbalancedDB import connect
 
 # Global variables
 
-from settings import LIGHT_CURVES_DIR, DB_DIR, SAMPLE_DIR, TS_LENGTH
+from settings import LIGHT_CURVES_DIR, DB_DIR, SAMPLE_DIR, TS_LENGTH, ats
 
 HELP_MESSAGE = \
 """
@@ -116,7 +115,7 @@ def search_vpdb(vp_t,ts):
 
     vp_fn, dist_to_vp = vp_t
     db_path = DB_DIR + vp_fn[:-4] + ".dbdb"
-    db = unbalancedDB.connect(DB_DIR + vp_fn[:-4] + ".dbdb")
+    db = connect(DB_DIR + vp_fn[:-4] + ".dbdb")
     s_ts = standardize(ts)
 
     # Identify light curves in selected vantage db that are up to 2x the distance

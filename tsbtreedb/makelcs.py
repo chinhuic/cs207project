@@ -4,22 +4,21 @@
 # CS207 Group Project Part 7
 # Created by Team 2 (Jonne Seleva, Nathaniel Burbank, Nicholas Ruta, Rohan Thavarajah) for Team 4
 
-
+import os
 import random
 import numpy as np
 from scipy.stats import norm
-import settings
 
 # Global variables
 
-from settings import LIGHT_CURVES_DIR
+from settings import LIGHT_CURVES_DIR, ats
 
 HELP_MESSAGE = \
 """
 Make Light Curves
 
 A python command line utility for generating simulated light curve time series data files.
-Can be used independently or called by simsearch. 
+Can be used independently or called by simsearch.
 
 Usage: ./makelcs 100 [optional flags]
 

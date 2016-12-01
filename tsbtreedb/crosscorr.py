@@ -6,7 +6,7 @@
 
 import numpy as np
 import numpy.fft as nfft
-import settings
+from settings import ats
 
 def standardize(ts):
     """standardize timeseries ts by its mean and std deviation"""

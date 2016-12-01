@@ -12,8 +12,7 @@ import numpy as np
 from unbalancedDB import connect
 from crosscorr import kernel_dist, standardize
 from makelcs import clear_dir
-from settings import LIGHT_CURVES_DIR, DB_DIR, TS_LENGTH
-import ArrayTimeSeries as ats
+from settings import LIGHT_CURVES_DIR, DB_DIR, TS_LENGTH, ats
 
 # Global variables
 

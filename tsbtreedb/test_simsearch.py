@@ -15,7 +15,7 @@ from makelcs import clear_dir
 import genvpdbs
 import simsearch
 import unbalancedDB
-from settings import TEMP_DIR, LIGHT_CURVES_DIR, DB_DIR
+from settings import TEMP_DIR, LIGHT_CURVES_DIR, DB_DIR, ats
 
 def test_makelcs():
     print("Testing 123")
