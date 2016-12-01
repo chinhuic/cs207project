@@ -5,6 +5,7 @@
 # Created by Team 2 (Jonne Seleva, Nathaniel Burbank, Nicholas Ruta, Rohan Thavarajah) for Team 4
 
 import os
+import sys
 import random
 import numpy as np
 from scipy.stats import norm
