@@ -242,7 +242,7 @@ class SMTimeSeries(SizedContainerTimeSeriesInterface):
     def std(self, chunk = None):
         """
         Calculates the standard deviation.
-        PARAMENTERS
+        PARAMETERS
         ------------
         chunk: int
            a positive integer that specifies how many values from the beginning
