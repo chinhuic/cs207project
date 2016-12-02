@@ -3,6 +3,7 @@ from SizedContainerTimeSeriesInterface import SizedContainerTimeSeriesInterface
 from FileStorageManager import FSM_global
 from ArrayTimeSeries import ArrayTimeSeries
 import numbers
+import numpy as np
 
 
 class SMTimeSeries(SizedContainerTimeSeriesInterface):
@@ -49,10 +50,13 @@ class SMTimeSeries(SizedContainerTimeSeriesInterface):
         Class method with an id to look up and fetch from the storage manager. The 
         storage manager allocates the time series in memory.
         """
-        return FSM_global.get(id)
+        if id not in FSM_global._index:
+            raise KeyError('Input ID does not exist on disk!')
+        else:
+            return FSM_global.get(id)
     
     def __len__(self):
-        t = FSM_global.size(self._id)
+        return FSM_global.size(self._id)
         
     def interpolate(self, times):
         t = FSM_global.get(self._id)
@@ -131,21 +135,6 @@ class SMTimeSeries(SizedContainerTimeSeriesInterface):
         t = FSM_global.get(self._id)
         return str(t)
     
-    # Helper method for methods that perform calculations (like __add__, __sub__, for instance),
-    # to check whether the lengths are the same
-    def _check_length_helper(self , rhs):
-        t1 = FSM_global.get(self._id)
-        t2 = FSM_global.get(rhs._id)
-        if not len(t1)==len(t2):
-            raise ValueError(str(t1)+' and '+str(t2)+' must have the same length')
-
-    # Helper method for methods that perform calculations (like __add__, __sub__, for instance),
-    # to check whether the time domains of the TimeSeries are the same
-    def _check_timedomains_helper(self, rhs):
-        t1 = FSM_global.get(self._id)
-        t2 = FSM_global.get(rhs._id)
-        if not np.array_equal(t1.times(), t2.times()):
-            raise ValueError(str(t1)+' and '+str(t2)+' must have the same time points')
             
     # Method to perform infix addition after checking the lengths are equal, and time domains are the same
     # for operations on a TimeSeries   
