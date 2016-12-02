@@ -217,7 +217,7 @@ class SMTimeSeries(SizedContainerTimeSeriesInterface):
         t = storage_manager.get(self._id)
         return bool(abs(t))
     
-     def mean(self, chunk = None):
+    def mean(self, chunk = None):
         """
         Calculates the mean.
         PARAMETERS
