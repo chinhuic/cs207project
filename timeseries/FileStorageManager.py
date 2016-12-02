@@ -75,3 +75,8 @@ class FileStorageManager(StorageManagerInterface):
             
             if proposed_id not in self._index:
                 return proposed_id
+
+            
+
+# Create a global instance of FileStorageManager
+FSM_global = FileStorageManager()
