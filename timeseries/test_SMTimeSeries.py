@@ -1,13 +1,13 @@
 from pytest import raises
 import numpy as np
 import math
-import shutil
+import os
 from ArrayTimeSeries import ArrayTimeSeries
 from SMTimeSeries import SMTimeSeries
 from FileStorageManager import FSM_global
 from lazy import LazyOperation, lazy_add, lazy_mul, lazy
 
-# NOTE: We use pytest here instead of our typical unittest, since we had 
+#  NOTE: We use pytest here instead of our typical unittest, since we had 
 #       difficulty using the latter to delete test data after running tests
 
     
@@ -407,6 +407,9 @@ def test_std_chunk():
 
 # remove test files
 def delete_test_data():
-    shutil.rmtree("./SM_TS_data")
+    filelist = [ f for f in os.listdir("./SM_TS_data")]
+    for f in filelist:
+        os.remove('./SM_TS_data/' + f)
     
+
     

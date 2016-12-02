@@ -1,7 +1,7 @@
 from pytest import raises
 import numpy as np
 import math
-import shutil
+import os
 from ArrayTimeSeries import ArrayTimeSeries
 from FileStorageManager import FileStorageManager
 
@@ -106,8 +106,14 @@ def test_autogenerate_id():
     assert(new_id not in storage_manager._index)
     
     delete_test_data()
-    
+
 # remove test files
 def delete_test_data():
-    shutil.rmtree("./SM_TS_data")
+    filelist = [ f for f in os.listdir("./SM_TS_data")]
+    for f in filelist:
+        os.remove('./SM_TS_data/' + f)
+    
         
+
+    
+    
