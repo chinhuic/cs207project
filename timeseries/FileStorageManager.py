@@ -2,21 +2,25 @@
 from StorageManagerInterface import StorageManagerInterface
 from ArrayTimeSeries import ArrayTimeSeries
 from random import randint
-import sys
+import os, sys
 import numpy as np
-import json
+import pickle
 
 class FileStorageManager(StorageManagerInterface):
     
-    # Might add id_file to argument
-    def __init__(self):
-        try:
-            id_file = open('id.json', 'r')
-            self._id = json.load(id_file)
-        except IOError:
-            self._id = set()
+    def __init__(self, filename = 'ts_index.pkl', directory = './SM_TS_data'):
+        
+        if not os.path.exists(directory_path):
+            os.makedirs(directory_path)
             
-        self._filename = 'id.json'
+        try:
+            with open('directory + '/' + filename', 'rb') as index_file:
+                self._index = pickle.load(index_file)
+        except:
+            self._index = dict()
+            
+        self._filename = filename
+        self._directory = directory
             
         
     def store(self, id, t):
@@ -27,13 +31,13 @@ class FileStorageManager(StorageManagerInterface):
         # times and values
         t_64bit_arr = np.vstack((t.times(), t.values())).astype(np.float64)
         
-        np.save('ts_data/'+str(id), t_64_bit_arr)
+        np.save(self._directory + '/' + 'ts_' + str(id), t_64_bit_arr)
         
-        self._id.add(id)
+        self._index[str(id)] = len(t)
         
-        np.save('id.json', self._id)
+        with open('directory + '/' + filename', 'wb') as index_file:
+            pickle.dump(self._index, index_file, protocol=pickle.HIGHEST_PROTOCOL)
         
-        # or return t_64bit_arr?
         return t
         
         
@@ -41,11 +45,11 @@ class FileStorageManager(StorageManagerInterface):
         """
         Method to obtain the size of a SizedContainerTimeSeriesInterface by id
         """
+        if str(id) in self._index:
+            return self._index[str(id)]
         
-        # Retrieve stored time series with given id
-        t = np.load('data/'+str(id)+'.npz')
-        
-        return len(t)
+        else:
+            raise KeyError('Input ID does not exist on disk!')
         
         
     def get(self, id):
@@ -53,12 +57,21 @@ class FileStorageManager(StorageManagerInterface):
         Method to obtain a SizedContainerTimeSeries instance
         """
         # Retrieve stored time series with given id
-        t = np.load('data/'+str(id)+'.npy')
+        if str(id) in self._index:
+            t = np.load(self._directory + '/' + 'ts_' + str(id) + '.npy')
+            
+            return ArrayTimeSeries(t[0], t[1])
         
-        return ArrayTimeSeries(t[0], t[1])
+        else:
+            raise KeyError('Input ID does not exist on disk!')
+        
     
     def autogenerate_id(self):
         """
         Method to generate a new id for when user does not specify id
         """
-        return str(randint(1, sys.maxsize))
+        while True:
+            proposed_id = randint(1, sys.maxsize)
+            
+            if proposed_id not in self._index:
+                return proposed_id
