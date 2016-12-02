@@ -10,11 +10,11 @@ class FileStorageManager(StorageManagerInterface):
     
     def __init__(self, filename = 'ts_index.pkl', directory = './SM_TS_data'):
         
-        if not os.path.exists(directory_path):
-            os.makedirs(directory_path)
+        if not os.path.exists(directory):
+            os.makedirs(directory)
             
         try:
-            with open('directory + '/' + filename', 'rb') as index_file:
+            with open(directory + '/' + filename, 'rb') as index_file:
                 self._index = pickle.load(index_file)
         except:
             self._index = dict()
@@ -31,11 +31,11 @@ class FileStorageManager(StorageManagerInterface):
         # times and values
         t_64bit_arr = np.vstack((t.times(), t.values())).astype(np.float64)
         
-        np.save(self._directory + '/' + 'ts_' + str(id), t_64_bit_arr)
+        np.save(self._directory + '/' + 'ts_' + str(id), t_64bit_arr)
         
         self._index[str(id)] = len(t)
         
-        with open('directory + '/' + filename', 'wb') as index_file:
+        with open(self._directory + '/' + self._filename, 'wb') as index_file:
             pickle.dump(self._index, index_file, protocol=pickle.HIGHEST_PROTOCOL)
         
         return t
@@ -66,7 +66,7 @@ class FileStorageManager(StorageManagerInterface):
             raise KeyError('Input ID does not exist on disk!')
         
     
-    def autogenerate_id(self):
+    def _autogenerate_id(self):
         """
         Method to generate a new id for when user does not specify id
         """

@@ -38,7 +38,7 @@ class SMTimeSeries(SizedContainerTimeSeriesInterface):
         if id is None:
             # Generate id if unspecified
             # Typecast to string just in case
-            self._id = str(storage_manager.autogenerate_id())
+            self._id = str(storage_manager._autogenerate_id())
         else:
             self._id = str(id)
             
