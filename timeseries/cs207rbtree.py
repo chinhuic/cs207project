@@ -1,27 +1,35 @@
-# unbalanced binary search tree
+# red-black tree
 # based off lab 10
+# based off Scott Lobdell's implementation of Red-Black trees, given on 
+# on http://scottlobdell.me/2016/02/purely-functional-red-black-trees-python/
+
 import pickle
 import os
 import struct
 import portalocker
 
 class Color(object):
+    """
+    Used to denote the color attribute of a node in the red-black tree
+    Attributes
+    ----------
+    RED
+    BLACK
+    """
     RED = 0
     BLACK = 1
-
 
 class ValueRef(object):
     """
     Reference to a string value on disk
-
+    
     Parameters
     ----------
     referent : optional
         The value to store (default is None)
-
     address : int, optional
         Address of the referent (default is 0)
-
+        
     Attributes
     ----------
     _referent
@@ -33,25 +41,19 @@ class ValueRef(object):
         - referent values converted to utf-8 encoded bytes of string 
         of referent when stored to account for different key, value types
         - return type of get for a value will always be a string type
-
-    Examples
-    --------
-
     """
 
     def __init__(self, referent=None, address=0):
         """
         Constructor for ValueRef.  Initializes with a value given by `referent`
         at the address given by `address`
-
+        
         Parameters
         ----------
         referent : int/float/string, optional
             The value to store (default is None)
-
         address : int, optional
             Address of the referent (default is 0)
-
         """
         self._referent = referent #value to store
         self._address = address #address to store at
@@ -62,14 +64,26 @@ class ValueRef(object):
         return self._address
     
     def prepare_to_store(self, storage):
-        """acts as placeholder for BinaryNodRef method which stores refs"""
+        """
+        acts as placeholder for BinaryNodRef method which stores references
+        Parameters
+        ----------
+        storage : Storage
+            The storage manager through which we can read, write, lock etc to the file
+        
+        """
         pass
 
     @staticmethod
     def referent_to_bytes(referent):
         """
         converts string of referent value to bytes
-
+        
+        Parameters
+        ----------
+        referent : int/float/string, optional
+            The value to convert to bytes (default is None)
+            
         NOTE: changed original code to account for other referent types, so forced
         referent into string type to encode into utf-8
         """
@@ -77,19 +91,40 @@ class ValueRef(object):
 
     @staticmethod
     def bytes_to_referent(bytes):
-        """converts bytes back to the string of the referent value"""
+        """
+        converts bytes back to the string of the referent value
+        Parameters
+        ----------
+        bytes : bytes
+            The byte value to be converted to the string of the referent value  
+        
+        """
         return bytes.decode('utf-8')
 
     
     def get(self, storage):
-        """read bytes for value from disk"""
+        """
+        read bytes for value from disk
+        Parameters
+        ----------
+        storage : Storage
+            The storage manager through which we can read, write, lock etc to the file
+        
+        """
         # read from the address if there is an address but no _referent value
         if self._referent is None and self._address:
             self._referent = self.bytes_to_referent(storage.read(self._address))
         return self._referent
 
     def store(self, storage):
-        """"store bytes for value to disk"""
+        """
+        store bytes for value to disk
+        Parameters
+        ----------
+        storage : Storage
+            The storage manager through which we can read, write, lock etc to the file
+            
+        """
         #called by BinaryNode.store_refs
         if self._referent is not None and not self._address:
             self.prepare_to_store(storage)
@@ -98,14 +133,13 @@ class ValueRef(object):
 
 class BinaryNodeRef(ValueRef):
     """"
-    A reference to a btree node on disk. It is a specialized subclass of ValueRef to 
+    A reference to a rbtree node on disk. It is a specialized subclass of ValueRef to 
     serialize/deserialize a BinaryNode
-
+    
     Parameters
     ----------
     referent : optional
         The value to store (default is None)
-
     address : int, optional
         Address of the referent (default is 0)
         
@@ -114,21 +148,29 @@ class BinaryNodeRef(ValueRef):
     WARNINGS:
         - referent values converted to utf-8 encoded bytes of string 
         of referent when stored to account for different referent types
-
-    Examples
-    --------
-
     """
     
     #calls the BinaryNode's store_refs
     def prepare_to_store(self, storage):
-        """have a node store its refs"""
+        """
+        stores the references of a node
+        Parameters
+        ----------
+        storage : Storage
+            The storage manager through which we can read, write, lock etc to the file
+        """
         if self._referent:
             self._referent.store_refs(storage)
 
     @staticmethod
     def referent_to_bytes(referent):
-        """"use pickle to convert node to bytes"""
+        """
+        uses pickle to convert from node to bytes
+        Parameters
+        ----------
+        referent : int/float/string, optional
+            The value to convert to bytes 
+        """
         return pickle.dumps({
             'left': referent.left_ref.address,
             'key': referent.key,
@@ -139,14 +181,21 @@ class BinaryNodeRef(ValueRef):
 
     @staticmethod
     def bytes_to_referent(string):
-        """unpickle bytes to get a node object"""
+        """
+        unpickle bytes to get a node object
+        Parameters
+        ----------
+        string : bytes
+            The byte value to be unpickled to get a node object
+        
+        """
         d = pickle.loads(string)
         return BinaryNode(
             BinaryNodeRef(address=d['left']),
             d['key'],
             ValueRef(address=d['value']),
             BinaryNodeRef(address=d['right']),
-            d['color']
+            d['color'] 
         )
     
 class BinaryNode(object):
@@ -157,15 +206,14 @@ class BinaryNode(object):
     ----------
     left_ref : BinaryNodeRef
         A reference to the left child
-
-    key
+    key : int, float, or str
         The key component in a key value pair
-
     value_ref: ValueRef
         A reference to the value that corresponds to key
-
     right_ref: BinaryNodeRef
         A reference to the right child
+    color : Color
+        The color of the node
     
     Attributes
     ----------
@@ -173,18 +221,19 @@ class BinaryNode(object):
     key
     value_ref
     right_ref
-
-        
-    Notes
-    -----
-          
-    Examples
-    --------
-
+    color
     """
     @classmethod
     def from_node(cls, node, **kwargs):
-        """clone a node with some changes from another one"""
+        """
+        clone a node with some changes from another one
+        Parameters
+        ----------
+        node : Binary Node
+            The node to be cloned with some changes
+        kwargs: Keyword argument
+            The changes that need to be incorporated into the cloned node
+        """
         return cls(
             left_ref=kwargs.get('left_ref', node.left_ref),
             key=kwargs.get('key', node.key),
@@ -196,8 +245,21 @@ class BinaryNode(object):
     def __init__(self, left_ref, key, value_ref, right_ref, color=Color.RED):
         """
         Constructor for BinaryNode. Initializes with a `key`, a reference to the value
-        given by `value_ref`, a reference to the left child `left_ref`, and a
-        reference to the right child `right_ref`.
+        given by `value_ref`, a reference to the left child `left_ref`, a
+        reference to the right child `right_ref`, and 'color' which denotes the color of the node.
+        Parameters
+        ----------
+        left_ref : BinaryNodeRef
+            A reference to the left child
+        key : int, float, or str
+            The key component in a key value pair
+        value_ref: ValueRef
+            A reference to the value that corresponds to key
+        right_ref: BinaryNodeRef
+            A reference to the right child
+        color : Color
+            The color of the node, default is RED   
+        
         """
         self.left_ref = left_ref
         self.key = key
@@ -206,33 +268,44 @@ class BinaryNode(object):
         self.color = color
 
     def blacken(self):
-        """makes own color black"""
+        """makes the color of the node black if it was red, no change otherwise"""
         if self.color == Color.RED:
             self.color = Color.BLACK
 
     def redden(self):
-        """makes own color red"""
+        """makes the color of the node red if it was black, no change otherwise"""
         if self.color == Color.BLACK:
             self.color = Color.RED
-    
-    # CHECK ME!
-    def is_empty(self):
-        return False
 
     def is_black(self):
+        """
+        checks whether the color of the node is black or not.
+        Returns 'True' if the node is black, otherwise 'False'
+        """
         if self.color == Color.BLACK:
             return True
         else:
             return False
 
     def is_red(self):
+        """
+        checks whether the color of the node is red or not.
+        Returns 'True' if the color is red, otherwise 'False'
+        """
         if self.color == Color.RED:
             return True
         else:
             return False
 
     def store_refs(self, storage):
-        """method for a node to store all of its stuff"""
+        """
+        method for a node to store the references to its value and children to the storage denoted by 'storage'
+        Parameters
+        -----------
+        storage : Storage
+            The storage manager through which we can read, write, lock etc to the file
+        
+        """
         self.value_ref.store(storage)
         #calls BinaryNodeRef.store. which calls
         #BinaryNodeRef.prepate_to_store
@@ -241,55 +314,70 @@ class BinaryNode(object):
         self.left_ref.store(storage)
         self.right_ref.store(storage)
 
+
 class BinaryTree(object):
     """"
-    Immutable Binary Tree class. Constructs new tree on changes
-
+    Immutable Red-Black Binary Tree class. Constructs new tree when any changes are made
+    
     Parameters
     ----------
     storage : Storage
-        A Storage object to manage storage of Binary Tree
-
+        The storage manager through which we can read, write, lock etc to the file
+        
     Attributes
     ----------
     _storage : Storage
         a storage object to manage read/write
-
     _tree_ref : BinaryNodeRef
-        refrence to unbalanced bst, created when `self_refresh_tree_ref()` called in constructor
-
-    Notes
-    -----
+        refrence to unbalanced bst, created when `self._refresh_tree_ref()` called in constructor
         
+    Notes
+    -----       
     WARNINGS:
         - return type of get for a value will always be a string type
           
     Examples
     --------
+    
     """
+    
     def __init__(self, storage):
         """
         Constructor for BinaryTree class.  Initialized with an instance of Storage 
         given by `storage`. The _refresh_tree_ref method initializes the value `_tree_ref`,
         a reference to the tree root node or root address, which is itself a BinaryNodeRef.
+        Parameters
+        ----------
+        storage : Storage
+            The storage manager through which we can read, write, lock etc to the file
         """
         self._storage = storage
         self._refresh_tree_ref()
 
     def commit(self):
-        """changes are final only when committed"""
+        """
+        Stores the changes that have been made. Any
+        changes will be final only when they are committed.
+        """
         #triggers BinaryNodeRef.store
         self._tree_ref.store(self._storage)
         #make sure address of new tree is stored
         self._storage.commit_root_address(self._tree_ref.address)
 
     def _refresh_tree_ref(self):
-        """get reference to new tree if it has changed"""
+        """gets reference to the new root of the tree if the structure has changed"""
         self._tree_ref = BinaryNodeRef(
             address=self._storage.get_root_address())
 
     def get(self, key):
-        """get value for given `key`"""
+        """
+        gets the value associated with the given `key`. Raises an error if 'key' does not exist in the tree. 
+        
+        Parameters
+        ----------
+        key : int, float, or str
+            The key component in a key value pair
+        """
         #your code here
         #if tree is not locked by another writer
         #refresh the references and get new tree if needed
@@ -299,7 +387,7 @@ class BinaryTree(object):
         node = self._follow(self._tree_ref)
         #traverse until you find appropriate node
         while node is not None:
-            print(node.key, node.color)
+            # print(node.key, node.color)
             if key < node.key:
                 node = self._follow(node.left_ref)
             elif key > node.key:
@@ -308,8 +396,15 @@ class BinaryTree(object):
                 return self._follow(node.value_ref)
         raise KeyError
 
-    def get_ref(self,key):
-        """gets the referece for given `key`"""
+    def get_ref(self, key):
+        """
+        gets the reference for the node in the tree which has the key given by `key`.
+        raises a KeyError if the given key is not in the tree
+        Parameters
+        ----------
+        key : int, float, or str
+            The key component in a key value pair
+        """
         #if tree is not locked by another writer
         #refresh the references and get new tree if needed
         if not self._storage.locked:
@@ -343,12 +438,18 @@ class BinaryTree(object):
         raise KeyError
 
 
-    def get_parent(self,key):
+    def get_parent(self, key):
         """
-        get the parent node of the node with key given by `key`
+        gets the parent node of the node with key given by `key`
         returns a tuple of the parent and string 'L' when the child
         node with key is the left child or string 'R' when the child
         node with key is the right child
+        raises a KeyError if the key is not in the tree
+        returns the reference to the tree if key is of the head node
+        Parameters
+        ----------
+        key : int, float, or str
+            The key component in a key value pair
         """
 
         #if tree is not locked by another writer
@@ -384,7 +485,19 @@ class BinaryTree(object):
         raise KeyError
 
     def set(self, key, value):
-        """set a new value in the tree. will cause a new tree"""
+        """
+        set a new value for a given key in the tree. will create a new tree
+        Parameters
+        ----------
+        key : int, float, or str
+            The key component in a key value pair
+        value : int, float, or str
+            The value component in a key value pair
+        Notes
+        -----
+        - `key` and `value` must both be specified. The method will not work as
+        intended unless both key and value are specified.
+        """
         #try to lock the tree. If we succeed make sure
         #we dont lose updates from any other process
         if self._storage.lock():
@@ -395,9 +508,9 @@ class BinaryTree(object):
         
         #insert and get new node ref
         self._tree_ref = self._insert(node, key, value_ref)
-        print('----------------')
-        print('inserted ', key)
-        print('- - - - - - - - ')
+        # print('----------------')
+        # print('inserted ', key)
+        # print('- - - - - - - - ')
         
         # get reference for new node added
         new_node_ref = self.get_ref(key)
@@ -407,10 +520,10 @@ class BinaryTree(object):
         self.update(new_node_ref)
         #self.update(new_node_ref, self._tree_ref)
 
-        print('--------------------------')
-        print('head after update', self._follow(self._tree_ref).key)
-        print('--------------------------')
-        print('\n')
+##        print('--------------------------')
+##        print('head after update', self._follow(self._tree_ref).key)
+##        print('--------------------------')
+##        print('\n')
 
         # then blacken the head after everything is updated
         self._follow(self._tree_ref).blacken()
@@ -418,7 +531,13 @@ class BinaryTree(object):
 
 
     def recolored(self, node_ref):
-        """ make node at `node_ref` red and its children black"""
+        """
+        makes the node present at `node_ref` red and its children black
+        Parameters
+        ----------
+        node_ref: BinaryNodeRef
+            A reference to the node to be colored red, its children will be colored black
+        """
         curr_node = self._follow(node_ref)
         L_node = self._follow(curr_node.left_ref)
         R_node = self._follow(curr_node.right_ref)
@@ -433,12 +552,15 @@ class BinaryTree(object):
 
 
     def rotate_left(self, node_ref):
-        
         """
-        a left rotation at `node_ref`
+        a left rotation occurs at `node_ref`
         no color changes here
+        Parameters
+        ----------
+        node_ref: BinaryNodeRef
+            A reference to the node where a left rotation must be carried out     
         """
-        print('rotating left')
+        # print('rotating left')
 
         curr_node = self._follow(node_ref)
         R_node = self._follow(curr_node.right_ref)
@@ -446,11 +568,11 @@ class BinaryTree(object):
         # update parent of node_ref to point to the new rotated node
         # update reference to head if it is being rotated
         if node_ref == self._tree_ref:
-            print('changed head to R')
+            # print('changed head to R')
             self._tree_ref = curr_node.right_ref
         # for all non-head nodes
         else:
-            print('changed child to R')
+            # print('changed child to R')
             # find parent
             # update their child ref
             P_node, side = self.get_parent(curr_node.key)
@@ -468,21 +590,25 @@ class BinaryTree(object):
 
     def rotate_right(self, node_ref):
         """
-        rotate right at `node_ref`
-        no color change
+        a right rotation occurs at `node_ref`
+        no color change happens
+        Parameters
+        ----------
+        node_ref: BinaryNodeRef
+            A reference to the node where a right rotation must be carried out
         """
-        print('rotating right')
+        # print('rotating right')
         curr_node = self._follow(node_ref)
         L_node = self._follow(curr_node.left_ref)
 
         # update parent of node_ref to point to the new rotated node
         # update reference to head if it is being rotated
         if node_ref == self._tree_ref:
-            print('changed head to L')
+            # print('changed head to L')
             self._tree_ref = curr_node.left_ref
         # for all non-head nodes
         else:
-            print('changed child to L')
+            # print('changed child to L')
             # find parent
             # update their child ref
             P_node, side = self.get_parent(curr_node.key)
@@ -500,9 +626,12 @@ class BinaryTree(object):
     # reassign pointers
     def balance(self, node_ref):
         """
-        balance the tree at the node at `node_ref`
-        deal with color changes here
-
+        balance the tree at the node given at `node_ref`
+        color changes of nodes are dealt with here
+        Parameters
+        ----------
+        node_ref: BinaryNodeRef
+            A reference to the node where the tree must be balanced
         """
 
         curr_node = self._follow(node_ref)
@@ -511,7 +640,7 @@ class BinaryTree(object):
         if curr_node is None:
             return
 
-        print('balance on',curr_node.key)
+        # print('balance on',curr_node.key)
 
         L_node = self._follow(curr_node.left_ref)
         R_node = self._follow(curr_node.right_ref)
@@ -519,10 +648,10 @@ class BinaryTree(object):
 
         # if current node is red
         if curr_node.is_red():
-            print('it is red')
+            # print('it is red')
             return
 
-        print('it is black')
+        # print('it is black')
         # continues if it is black
         # if left node is red
         if L_node is not None and L_node.is_red():
@@ -590,10 +719,13 @@ class BinaryTree(object):
 
     def update(self, node_ref):
         """
-        balances starting from the newly inserted node at `node_ref` then
-        balances each level above until the whole tree is balanced
-
-        no direct color changes here, occurs when calls made to balance
+        balances starting from the newly inserted node at `node_ref`,
+        then balances each level above until the whole tree is balanced
+        no direct color changes occur here, they occur when calls are made to balance
+        Parameters
+        ----------
+        node_ref: BinaryNodeRef
+            A reference to the node from where the balancing of the tree must begin
         """
 
         # start at inserted node and work way up parents
@@ -650,12 +782,20 @@ class BinaryTree(object):
     
     def _insert(self, node, key, value_ref):
         """
-        insert a new node creating a new path from root
+        inserts a new node creating a new path from root
         returns the head of the new tree created
-
+        Parameters
+        ----------
+        node : BinaryNode
+            The node to be inserted 
+        key : int, float, or str
+            The key component in a key value pair
+        value_ref : BinaryNodeRef
+            A reference to the value associated with the node
+            
         """
         # recursively inserts node after node to build entire tree
-        #create a tree if there was none so far
+        # create a tree if there was none so far
         if node is None:
             new_node = BinaryNode(
                 BinaryNodeRef(), key, value_ref, BinaryNodeRef())
@@ -678,15 +818,30 @@ class BinaryTree(object):
 
 
     def delete(self, key):
-        """delete node with key given by `key`, creating new tree and path"""
+        """
+        deletes the node with key given by `key`, creating a new tree and path
+        Parameters
+        ----------
+        key : int, float, or str
+            The key component in a key value pair
+        """
         if self._storage.lock():
             self._refresh_tree_ref()
         node = self._follow(self._tree_ref)
         self._tree_ref = self._delete(node, key)
         
     def _delete(self, node, key):
-        """underlying delete implementation. removes the node given by `node` when `key` matches.
-        traverses tree until it reaches the matching key."""
+        """
+        the underlying delete implementation.
+        removes the node given by `node` when `key` matches.
+        traverses the tree until it reaches the matching key.
+        Parameters
+        ----------
+        node : BinaryNode
+            The node to be deleted 
+        key : int, float, or str
+            The key component in a key value pair
+        """
         if node is None:
             raise KeyError
         elif key < node.key:
@@ -719,30 +874,42 @@ class BinaryTree(object):
         return BinaryNodeRef(referent=new_node)
 
     def _follow(self, ref):
-        """get a node from a reference given by `ref`"""
+        """
+        gets a node from the reference given by `ref`
+        Parameters
+        ----------
+        ref : BinaryNodeRef
+            A reference to the desired node 
+        """
         #calls BinaryNodeRef.get
         return ref.get(self._storage)
     
     def _find_max(self, node):
-        """returns the right most node, the maximum"""
+        """
+        returns the right most node, the maximum, of 'node''s children 
+        Parameters
+        ----------
+        node: BinaryNode
+             The node whose branch we want to find the maximum of  
+        """
         while True:
             next_node = self._follow(node.right_ref)
             if next_node is None:
                 return node
             node = next_node
-
+        
 
 
 class Storage(object):
     """
-    Stoarge class manages access to storage, controlling the reads and writes 
+    Stoarge class manages the access to storage, controlling the reads and writes 
     as well as locking of the storage
-
+    
     Parameters
     ----------
     f : file name (string)
         Database filename to store the binary tree
-
+        
     Attributes
     ----------
     _f : string
@@ -757,10 +924,6 @@ class Storage(object):
         - referent values converted to utf-8 encoded bytes of string 
         of referent when stored to account for different referent types
         - return type of get for a value will always be a string type
-          
-    Examples
-    --------
-
     """
     SUPERBLOCK_SIZE = 4096
     INTEGER_FORMAT = "!Q"
@@ -771,6 +934,10 @@ class Storage(object):
         Constructor for Storage class. Initializes with storage in file `f`,
         initial storage being unlocked, and calls _ensure_superblock method
         to ensure the first write starts on sector boundary.
+        Parameters
+        ----------
+        f : String
+            The name of the database file used for storage 
         """
         self._f = f
         self.locked = False
@@ -778,7 +945,7 @@ class Storage(object):
         self._ensure_superblock()
 
     def _ensure_superblock(self):
-        """"guarantee that the next write will start on a sector boundary"""
+        """"guarantees that the next write will start on a sector boundary"""
         self.lock()
         self._seek_end()
         end_address = self._f.tell()
@@ -787,7 +954,7 @@ class Storage(object):
         self.unlock()
 
     def lock(self):
-        """if not locked, lock the file for writing"""
+        """if not locked, then lock the file for writing"""
         if not self.locked:
             portalocker.lock(self._f, portalocker.LOCK_EX)
             self.locked = True
@@ -796,29 +963,41 @@ class Storage(object):
             return False
 
     def unlock(self):
-        """if locked, unlock"""
+        """if file is locked, then unlock it"""
         if self.locked:
             self._f.flush()
             portalocker.unlock(self._f)
             self.locked = False
 
     def _seek_end(self):
-        """find the end of the storage file"""
+        """finds the end of the storage file"""
         self._f.seek(0, os.SEEK_END)
 
     def _seek_superblock(self):
-        """"go to beginning of file which is on sector boundary"""
+        """"goes to beginning of the file which is on sector boundary"""
         self._f.seek(0)
 
     def _bytes_to_integer(self, integer_bytes):
         """
         unpacks the string `integer_bytes` to format given by `INTEGER_FORMAT`
-        returns corresponding integer value
+        returns the corresponding integer value
+        Parameters
+        ----------
+        integer_bytes : String 
+            the value to be converted to the corresponding integer value
+        
         """
         return struct.unpack(self.INTEGER_FORMAT, integer_bytes)[0]
 
     def _integer_to_bytes(self, integer):
-        """returns a string with value given by `integer` packed according to format given by `INTEGER_FORMAT`"""
+        """
+        returns a string with value given by `integer` packed according to format given by `INTEGER_FORMAT`
+        Parameters
+        ----------
+        integer : Int
+            the integer value to be converted to string 
+        
+        """
         return struct.pack(self.INTEGER_FORMAT, integer)
 
     def _read_integer(self):
@@ -826,14 +1005,26 @@ class Storage(object):
         return self._bytes_to_integer(self._f.read(self.INTEGER_LENGTH))
 
     def _write_integer(self, integer):
-        """writes to storage file value of `integer` in bytes"""
+        """
+        writes to storage file the value of `integer` in bytes
+        Parameters
+        ----------
+        integer : Int
+            the integer to be written to the stoage file in bytes
+        
+        """
         self.lock()
         self._f.write(self._integer_to_bytes(integer))
 
-
-    # ?????
     def write(self, data):
-        """write data to disk, returning the adress at which you wrote it"""
+        """
+        writes data to disk, and returns the adress at which it was written
+        Parameters
+        ----------
+        data 
+            The information to be written to the disk
+    
+        """
         #first lock, get to end, get address to return, write size
         #write data, unlock <==WRONG, dont want to unlock here
         #your code here
@@ -845,14 +1036,27 @@ class Storage(object):
         return object_address
 
     def read(self, address):
-        """returns data at the location given by `address`"""
+        """
+        returns the data at the location given by `address`
+        Parameters
+        ----------
+        address : Int
+            The index in the file from where the data needs to be read 
+        """
         self._f.seek(address)
         length = self._read_integer()
         data = self._f.read(length)
         return data
 
     def commit_root_address(self, root_address):
-        """write the integer given by `root_address` into storage"""
+        """
+        writes the integer given by `root_address` into storage
+        Parameters
+        ----------
+        root_address : Int
+            the integer to be written into storage
+        
+        """
         self.lock()
         self._f.flush()
         #make sure you write root address at position 0
@@ -876,7 +1080,7 @@ class Storage(object):
 
     @property
     def closed(self):
-        """checks if the storage file and returns True if closed"""
+        """checks whether the storage file is closed or not. returns 'True' if closed, else 'False'"""
         return self._f.closed
 
 
@@ -885,17 +1089,16 @@ class DBDB(object):
     """
     The DBDB class acts as a database, holding the binary tree of all key, value 
     pairs as well as its storage manager
-
+    
     Parameters
     ----------
     f : string
         Database filename to store the binary tree
-
+        
     Attributes
     ----------
     _storage : Storage
         storage to be used with `_tree`
-
     _tree : BinaryTree
         unbalanced binary tree initialized with storage `_storage`
         
@@ -910,11 +1113,6 @@ class DBDB(object):
         - return type of `self._tree.get` for will always be a string type
         - `DBDB.get` will always try to convert output to an int or float if possible,
         otherwise it will be left as a string
-
-          
-    Examples
-    --------
-
     """
 
     def __init__(self, f):
@@ -949,11 +1147,15 @@ class DBDB(object):
 
     def get(self, key):
         """
-        returns the final value stored with under key
-        calls BinaryTree get to traverse the tree's branches
-
+        returns the final stored value associated with 'key'
+        calls BinaryTree get() to traverse the tree's branches
         if possible, returns an int or a float, but returns 
         a string otherwise.
+        Raises an error if 'key' does not exist in the tree. 
+        Parameters
+        ----------
+        key : int, float, or str
+            The key component in a key value pair
         """
         self._assert_not_closed()
         result = self._tree.get(key)
@@ -970,8 +1172,17 @@ class DBDB(object):
 
     def set(self, key, value):
         """
-        assigns a new value to key
-        calls BinaryTree set to set the key, value
+        assigns a new value, denoted by 'value', to 'key'
+        calls BinaryTree set() to set the new value of the given key
+        Parameters
+        ----------
+        key : int, float, or str
+            The key component in a key value pair
+        value : int, float, or str
+            The value component in a key value pair
+        Notes
+        -----
+        `key` and `value` must both be specified. The method will not work as intended unless both key and value are specified.
         """
 
         # raise an Error of the key or value is not an int/float/string
@@ -986,8 +1197,12 @@ class DBDB(object):
 
     def delete(self, key):
         """
-        deletes node with key and its value
-        calls BinaryTree delete to delete the node
+        deletes node whose key is given by 'key' and its value
+        calls the BinaryTree delete method to delete the node
+        Parameters
+        ----------
+        key : int, float, or str
+            The key component in a key value pair
         """
         self._assert_not_closed()
         return self._tree.delete(key)
@@ -998,17 +1213,11 @@ def connect(dbname):
     """"
     Opens an existing database file, creating a new one if it 
     does not yet exist, under the name `dbname` and returns instance of DBDB
-
+    
     Parameters
     ----------
     dbname : string
         name of the database to access, will create if does not exist already
-        
-    Notes
-    -----
-
-    Examples
-    --------
     """
 
     # open database file
@@ -1022,6 +1231,7 @@ def connect(dbname):
     # return DBDB instance
     return DBDB(f)
 
+"""
 if __name__ == "__main__":
     db = connect('scratch.dbdb')
     
@@ -1035,7 +1245,6 @@ if __name__ == "__main__":
     # db.set(11,'x')
     # db.set(26,'x')
     # db.set(12,'x')
-
     # db.get(11)
     # db.set(3,'x')
     # db.set(7,'x')
@@ -1044,33 +1253,22 @@ if __name__ == "__main__":
     # db.set(20,'x')
     
     # db.set(23,'x')
-
-
-
-
     db.set(0,'x')
     db.set(1,'x')
     db.set(2,'x')
     db.set(3,'x')
     db.set(4,'x')
     db.set(5,'x')
-
-
-
     db.get(5)
     print('\n')
     #db.get(18)
     
     db.commit()
     db.close()
-
-
     # reopen
     db = connect('scratch.dbdb')
     db.get(5)
     db.close()
     
-
-
-
     os.remove('scratch.dbdb')
+"""
