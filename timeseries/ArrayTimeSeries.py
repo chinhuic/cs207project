@@ -1,17 +1,14 @@
 from SizedContainerTimeSeriesInterface import SizedContainerTimeSeriesInterface
 from lazy import LazyOperation, lazy_add, lazy_mul, lazy
+import math
 import numpy as np
 import numbers
-import math
+from TimeSeries import TimeSeries
 
-
-class TimeSeries(SizedContainerTimeSeriesInterface):
+class ArrayTimeSeries(SizedContainerTimeSeriesInterface):
     """
-    TimeSeries class
-    
-    Represents a series of ordered numerical tuples, representing (time, value), 
-    possibly empty.
-    Construction:  ts = TimeSeries(<a sequence of times>, <a sequence of values>)
+    A subclass of TimeSeries that stores ordered time series values in
+    a numpy array
     
     Parameters
     ----------
@@ -36,18 +33,19 @@ class TimeSeries(SizedContainerTimeSeriesInterface):
           
     Examples
     --------
-    >>> t = TimeSeries([0, 1, 2], [1, 2, 3])
-    >>> len(t)
+    >>> at = ArrayTimeSeries([0, 1, 2], [1, 2, 3])
+    >>> len(at)
     3
-    >>> t[1]
+    >>> at[1]
     2
-    >>> t[2]
-    3
+    >>> at[2] = 4
+    >>> at[2]
+    4
     """
-
+    
     def __init__(self, times, values):
         """
-        Constructor for TimeSeries class. Initializes TimeSeries with 
+        Constructor for ArrayTimeSeries subclass. Initializes ArrayTimeSeries with 
         time values given in `times` and corresponding values given in `values`
         
         Checks that:
@@ -70,7 +68,7 @@ class TimeSeries(SizedContainerTimeSeriesInterface):
         # Check that all times are distinct 
         # (we don't check sortedness due to time complexity)
         if len(times) != len(set(times)):
-            raise ValueError('Input times must be distinct!')
+            raise ValueError('Input times must have distinct values!')
             
         # Check if input data is numeric
         if not all(isinstance(x, numbers.Number) for x in values):
@@ -85,21 +83,14 @@ class TimeSeries(SizedContainerTimeSeriesInterface):
             iter(times)
         except:
             raise TypeError('Data must be a sequence!')
-            
-        if type(times) == type(np.array([])) or type(values) == type(np.array([])):
-            raise NotImplementedError
-        else:
-            self._time = [t for t in times]
-            self._value = [x for x in values]
         
-        
-        
-    # Method len(ts), returns length of timeseries
-    def __len__(self):
-        return len(self._value)
-   
+        self._length = len([x for x in values])
+        self._value = np.array([x for x in values])
+        self._time = np.array([t for t in times])
     
-
+    def __len__(self):
+        return self._length
+    
     @staticmethod
     def binsearch_helper(seq, val):
         """ 
@@ -130,8 +121,8 @@ class TimeSeries(SizedContainerTimeSeriesInterface):
             -  objects in seq are numeric (and hence comparable)
             - `seq` has length greater than or equal to 2
             - `val` is not an element of `seq`
-            - `val` is strictly less than the largest element of `seq`, and strictly greater
-              than the smallest element of `seq`.
+            - `val` is strictly less than the largest element of `seq`, and strictly
+              greater than the smallest element of `seq`.
         POST: 
             - `seq` is not changed by this function (immutable)
             - returns the index of the smallest element in `seq` that
@@ -168,14 +159,15 @@ class TimeSeries(SizedContainerTimeSeriesInterface):
         A method that takes in a sequence of new time points and computes corresponding 
         values for these times as follows:
         
-          - If the new time point is less than the smallest time in the TimeSeries 
+          - If the new time point is less than the smallest time in the ArrayTimeSeries 
             instance, then the new value is the value associated with the smallest time.
-          - If the new time point is greater than the largest time in the TimeSeries 
+          - If the new time point is greater than the largest time in the ArrayTimeSeries 
             instance, then the new value is the value associated with the largest time.
-          - If the new time point is equal to any of the time points in the TimeSeries, then
-            the new value is the value associated with the equal time point.
-          - Else, the new value is linearly interpolated from the two values corresponding to
-            the two nearest time points.
+          - If the new time point is equal to any of the time points in the 
+            ArrayTimeSeries, then the new value is the value associated with the equal time  
+            point.
+          - Else, the new value is linearly interpolated from the two values corresponding 
+            to the two nearest time points.
         
         Parameters
         ----------
@@ -183,34 +175,36 @@ class TimeSeries(SizedContainerTimeSeriesInterface):
            A sequence of new time points 
         
         
+        PRECONDITION: 
+        
         Returns
         ----------
-        ts: TimeSeries instance
-            a new TimeSeries instance consisting of the new time points and their interpolated
-            values.
+        ts: ArrayTimeSeries instance
+            a new ArrayTimeSeries instance consisting of the new time points and their 
+            interpolated values.
             
         Notes
         -----
-        PRE: the TimeSeries instance has at least 2 data points
+        PRE: the ArrayTimeSeries instance has at least 2 data points
         POST: 
-            - the TimeSeries instance is not changed by this function 
-            - returns a new TimeSeries instance consisting of the new time points and their 
-              interpolated values.
+            - the ArrayTimeSeries instance is not changed by this function 
+            - returns a new ArrayTimeSeries instance consisting of the new time points and 
+              their interpolated values.
 
-        WARNINGS: If the TimeSeries instance has fewer than 2 data points, you may access invalid
-                  sequence indices.
+        WARNINGS: If the ArrayTimeSeries instance has fewer than 2 data points, you may 
+                  access invalid sequence indices.
   
         Examples
         --------
-        >>> ts = TimeSeries([0, 5, 10], [1, 2, 3])
+        >>> ts = ArrayTimeSeries([0, 5, 10], [1, 2, 3])
         >>> ts.interpolate([0])
-        TimeSeries[1]
+        ArrayTimeSeries[1]
         >>> ts.interpolate([5])
-        TimeSeries[2]
+        ArrayTimeSeries[2]
         >>> ts.interpolate([0, 5, 10])
-        TimeSeries[1, 2, 3]
+        ArrayTimeSeries[1, 2, 3]
         >>> ts.interpolate([1])
-        TimeSeries[1.2]
+        ArrayTimeSeries[1.2]
         
         """
         # Empty array which will be used to store interpolated values
@@ -220,7 +214,7 @@ class TimeSeries(SizedContainerTimeSeriesInterface):
         for t in times:
             # If time point already exists, then just use the corresponding value
             if t in self._time:      
-                interpolated_vals.append(self._value[self._time.index(t)])
+                interpolated_vals.append(self._value[np.where(self._time == t)][0])
                 
             # If time is less than lower stationary boundary
             elif t < self._time[0]:
@@ -254,4 +248,8 @@ class TimeSeries(SizedContainerTimeSeriesInterface):
                 
                 interpolated_vals.append(v_interpolated)
 
-        return TimeSeries(times, interpolated_vals)
+        return ArrayTimeSeries(times, interpolated_vals)
+    
+if __name__ == "__main__":
+    import doctest
+    doctest.testmod()

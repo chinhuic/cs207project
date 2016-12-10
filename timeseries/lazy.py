@@ -1,4 +1,32 @@
 class LazyOperation():
+
+=======
+    """
+    A class to construct functions that evaluate lazily.
+    
+    Parameters
+    ----------
+    function: This is the function that will be made lazy
+    *args, **kwargs: arguments of the above functions
+        
+    Returns
+    -------
+    instance of the class LazyOperation with function, args, kwargs stored
+        
+    Methods
+    -----
+    eval: Recursively apply function on the args and kwargs; 
+            effectively this does evaluation by traversing the thunk tree in post order
+    thunk_tree: Debugging function to print thunk tree in preorder tree traversal
+    
+    Notes
+    -----
+    PRE: 
+        - First argument is required to be a function
+        - args and kwargs must be consistent with function definition
+
+    """
+
     def __init__(self, function, *args, **kwargs):
         self._function = function
         self._args = args
@@ -38,4 +66,5 @@ def lazy_add(a,b):
 
 @lazy
 def lazy_mul(a,b):
+
     return a*b
